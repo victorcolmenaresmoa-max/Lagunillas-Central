@@ -82,7 +82,7 @@ export default function DashboardPage() {
   if (loading || !state || !store) {
     return (
       <main className="flex min-h-dvh items-center justify-center">
-        <Loader2 className="animate-spin text-laguna-400" size={32} />
+        <Loader2 className="animate-spin text-laguna-500" size={32} />
       </main>
     );
   }
@@ -93,30 +93,30 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto min-h-dvh max-w-md pb-32">
       {/* ---------- HEADER ---------- */}
-      <header className="pt-safe sticky top-0 z-30 border-b border-slate-800/60 bg-ink-950/80 backdrop-blur-xl">
+      <header className="pt-safe sticky top-0 z-30 border-b border-cal-300 bg-cal-100/85 backdrop-blur-xl">
         <div className="flex items-center gap-3 px-4 py-3">
           {merchant ? (
             <MerchantAvatar name={merchant.name} category={merchant.category} logoUrl={merchant.logo_url} size="sm" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-800 text-slate-400"><Store size={18} /></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cal-200 text-tinta-500"><Store size={18} /></div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate font-bold text-white">{merchant?.name ?? 'Nuevo comercio'}</p>
-            <p className="truncate text-xs text-slate-500">{state.email}</p>
+            <p className="truncate font-bold text-tinta-900">{merchant?.name ?? 'Nuevo comercio'}</p>
+            <p className="truncate text-xs text-tinta-400">{state.email}</p>
           </div>
           {merchant && (
-            <Link href={`/comercio/${merchant.slug}`} target="_blank" className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-800 px-3 text-xs font-semibold text-slate-300 active:scale-95">
+            <Link href={`/comercio/${merchant.slug}`} target="_blank" className="flex h-9 items-center gap-1.5 rounded-xl border border-cal-300 px-3 text-xs font-semibold text-tinta-700 active:scale-95">
               <ExternalLink size={14} /> Ver
             </Link>
           )}
-          <button onClick={signOut} aria-label="Cerrar sesión" className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 text-slate-400 active:scale-95">
+          <button onClick={signOut} aria-label="Cerrar sesión" className="flex h-9 w-9 items-center justify-center rounded-xl border border-cal-300 text-tinta-500 active:scale-95">
             <LogOut size={16} />
           </button>
         </div>
       </header>
 
       {store.demo && (
-        <div className="mx-4 mt-4 flex gap-2.5 rounded-2xl border border-sky-400/30 bg-sky-400/10 p-3 text-xs text-sky-200">
+        <div className="mx-4 mt-4 flex gap-2.5 rounded-2xl border border-cielo-400/40 bg-cielo-100 p-3 text-xs text-cielo-600">
           <Info size={16} className="mt-0.5 shrink-0" />
           <p><b>Modo demostración:</b> los cambios no se guardan. Conecta Supabase para usarlo de verdad.</p>
         </div>
@@ -130,10 +130,10 @@ export default function DashboardPage() {
             { label: 'Disponibles', value: products.filter((p) => p.is_available).length, icon: Check },
             { label: 'Ofertas activas', value: activeDeals.length, icon: Flame, hot: activeDeals.length > 0 },
           ].map(({ label, value, icon: Icon, hot }) => (
-            <div key={label} className="glass rounded-3xl p-3">
-              <Icon size={16} className={hot ? 'text-orange-400' : 'text-laguna-400'} />
-              <p className="mt-2 text-2xl font-extrabold tabular-nums text-white">{value}</p>
-              <p className="text-[11px] font-medium text-slate-500">{label}</p>
+            <div key={label} className="card p-3">
+              <Icon size={16} className={hot ? 'text-ocaso-500' : 'text-laguna-600'} />
+              <p className="mt-2 text-2xl font-extrabold tabular-nums text-tinta-900">{value}</p>
+              <p className="text-[11px] font-medium text-tinta-400">{label}</p>
             </div>
           ))}
         </section>
@@ -184,13 +184,13 @@ export default function DashboardPage() {
           />
         )}
         {tab !== 'perfil' && !merchant && (
-          <p className="text-center text-sm text-slate-500">Primero completa el perfil de tu comercio.</p>
+          <p className="text-center text-sm text-tinta-400">Primero completa el perfil de tu comercio.</p>
         )}
       </div>
 
       {/* ---------- NAVEGACIÓN INFERIOR ---------- */}
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-3">
-        <div className="glass grid grid-cols-3 gap-1 rounded-3xl p-1.5 shadow-2xl shadow-black/60">
+        <div className="glass grid grid-cols-3 gap-1 rounded-3xl p-1.5 shadow-lift">
           {([
             ['perfil', 'Perfil', Store],
             ['productos', 'Productos', Package],
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                 onClick={() => setTab(key)}
                 className={cn(
                   'flex flex-col items-center gap-1 rounded-2xl py-2 text-[11px] font-semibold transition active:scale-95 disabled:opacity-30',
-                  active ? 'bg-gradient-to-br from-laguna-400 to-sky-500 text-ink-950 shadow-glow' : 'text-slate-400'
+                  active ? 'bg-laguna-600 text-white shadow-jade' : 'text-tinta-500'
                 )}
               >
                 <Icon size={19} strokeWidth={2.3} />
@@ -222,7 +222,7 @@ export default function DashboardPage() {
           <div
             className={cn(
               'flex animate-fade-up items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold shadow-2xl',
-              toast.kind === 'ok' ? 'bg-emerald-500 text-emerald-950' : 'bg-rose-500 text-white'
+              toast.kind === 'ok' ? 'bg-laguna-600 text-white' : 'bg-teja-500 text-white'
             )}
           >
             {toast.kind === 'ok' ? <Check size={16} /> : <AlertTriangle size={16} />}
@@ -261,11 +261,11 @@ function ProfilePanel({ merchant, onSave }: { merchant: Merchant | null; onSave:
   return (
     <form onSubmit={submit} className="animate-fade-up space-y-4">
       <div>
-        <h2 className="text-xl font-extrabold text-white">{merchant ? 'Perfil del negocio' : 'Crea tu comercio'}</h2>
-        <p className="text-sm text-slate-500">Así te verán los clientes en la app.</p>
+        <h2 className="heading text-2xl">{merchant ? 'Perfil del negocio' : 'Crea tu comercio'}</h2>
+        <p className="text-sm text-tinta-400">Así te verán los clientes en la app.</p>
       </div>
 
-      <div className="glass space-y-4 rounded-[28px] p-4">
+      <div className="card space-y-4 rounded-[28px] p-4">
         <Field label="Nombre del negocio">
           <input className="input" required value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Ej: Arepera El Páramo" />
         </Field>
@@ -279,7 +279,7 @@ function ProfilePanel({ merchant, onSave }: { merchant: Merchant | null; onSave:
                 onClick={() => set('category', c as Category)}
                 className={cn(
                   'rounded-2xl border py-2.5 text-xs font-semibold transition active:scale-95',
-                  form.category === c ? 'border-laguna-500/60 bg-laguna-500/15 text-laguna-200' : 'border-slate-800 bg-ink-950/50 text-slate-400'
+                  form.category === c ? 'border-laguna-400 bg-laguna-100 text-laguna-700' : 'border-cal-300 bg-white text-tinta-500'
                 )}
               >
                 {c}
@@ -343,8 +343,8 @@ function ProductsPanel({
     <section className="animate-fade-up">
       <div className="mb-3 flex items-end justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-white">Productos</h2>
-          <p className="text-sm text-slate-500">Toca el interruptor para marcar agotado.</p>
+          <h2 className="heading text-2xl">Productos</h2>
+          <p className="text-sm text-tinta-400">Toca el interruptor para marcar agotado.</p>
         </div>
         <button onClick={() => setEditing('new')} className="btn-primary px-4 py-2.5 text-sm">
           <Plus size={17} strokeWidth={2.6} /> Nuevo
@@ -352,25 +352,25 @@ function ProductsPanel({
       </div>
 
       {products.length === 0 ? (
-        <div className="glass flex flex-col items-center rounded-3xl px-6 py-12 text-center">
-          <Package size={36} className="text-slate-600" />
-          <p className="mt-3 font-semibold text-slate-200">Aún no tienes productos</p>
-          <p className="mt-1 text-sm text-slate-500">Agrega el primero para que los clientes puedan pedir.</p>
+        <div className="card flex flex-col items-center px-6 py-12 text-center">
+          <Package size={36} className="text-tinta-400" />
+          <p className="mt-3 font-semibold text-tinta-700">Aún no tienes productos</p>
+          <p className="mt-1 text-sm text-tinta-400">Agrega el primero para que los clientes puedan pedir.</p>
         </div>
       ) : (
         <ul className="space-y-2.5">
           {products.map((p) => (
-            <li key={p.id} className={cn('glass rounded-3xl p-3 transition', !p.is_available && 'opacity-60')}>
+            <li key={p.id} className={cn('card p-3 transition', !p.is_available && 'opacity-60')}>
               <div className="flex items-center gap-3">
                 {p.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.image_url} alt="" className="h-12 w-12 shrink-0 rounded-2xl object-cover" />
                 ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ink-800 text-lg font-black text-slate-400">{p.title.charAt(0)}</div>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cal-200 text-lg font-black text-tinta-500">{p.title.charAt(0)}</div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-white">{p.title}</p>
-                  <p className="text-sm font-extrabold text-laguna-300">{formatPrice(p.price)}</p>
+                  <p className="truncate font-bold text-tinta-900">{p.title}</p>
+                  <p className="text-sm font-extrabold text-laguna-600">{formatPrice(p.price)}</p>
                 </div>
                 <Toggle
                   on={p.is_available}
@@ -379,15 +379,15 @@ function ProductsPanel({
               </div>
 
               {confirmDel === p.id ? (
-                <div className="mt-3 flex items-center gap-2 rounded-2xl bg-rose-500/10 p-2 pl-3">
-                  <p className="flex-1 text-xs font-semibold text-rose-200">¿Eliminar este producto?</p>
-                  <button onClick={() => setConfirmDel(null)} className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-300">No</button>
+                <div className="mt-3 flex items-center gap-2 rounded-2xl bg-teja-100 p-2 pl-3">
+                  <p className="flex-1 text-xs font-semibold text-teja-600">¿Eliminar este producto?</p>
+                  <button onClick={() => setConfirmDel(null)} className="rounded-xl px-3 py-1.5 text-xs font-semibold text-tinta-700">No</button>
                   <button
                     onClick={async () => {
                       await onDelete(p.id);
                       setConfirmDel(null);
                     }}
-                    className="rounded-xl bg-rose-500 px-3 py-1.5 text-xs font-bold text-white"
+                    className="rounded-xl bg-teja-500 px-3 py-1.5 text-xs font-bold text-white"
                   >
                     Sí, eliminar
                   </button>
@@ -397,7 +397,7 @@ function ProductsPanel({
                   <button onClick={() => setEditing(p)} className="btn-ghost flex-1 py-2 text-xs">
                     <Pencil size={14} /> Editar
                   </button>
-                  <button onClick={() => setConfirmDel(p.id)} className="btn-ghost py-2 text-xs text-rose-300">
+                  <button onClick={() => setConfirmDel(p.id)} className="btn-ghost py-2 text-xs text-teja-500">
                     <Trash2 size={14} /> Eliminar
                   </button>
                 </div>
@@ -446,7 +446,7 @@ function ProductSheet({ product, onClose, onSave }: { product: Product | null; o
         </Field>
         <Field label="Precio (USD)">
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-500">$</span>
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-tinta-400">$</span>
             <input className="input pl-8" required inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" />
           </div>
         </Field>
@@ -456,8 +456,8 @@ function ProductSheet({ product, onClose, onSave }: { product: Product | null; o
         <Field label="Foto (enlace, opcional)">
           <input className="input" type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://…" />
         </Field>
-        <div className="flex items-center justify-between rounded-2xl border border-slate-800 px-4 py-3">
-          <span className="text-sm font-semibold text-slate-200">Disponible para pedir</span>
+        <div className="flex items-center justify-between rounded-2xl border border-cal-300 px-4 py-3">
+          <span className="text-sm font-semibold text-tinta-700">Disponible para pedir</span>
           <Toggle on={available} onChange={setAvailable} />
         </div>
         <button type="submit" disabled={saving} className="btn-primary w-full py-3.5">
@@ -532,17 +532,17 @@ function DealsPanel({
   return (
     <section className="animate-fade-up space-y-6">
       <div>
-        <h2 className="flex items-center gap-2 text-xl font-extrabold text-white">
-          <Zap size={20} className="fill-orange-400 text-orange-400" /> Publicar oferta flash
+        <h2 className="flex items-center gap-2 heading text-2xl">
+          <Zap size={20} className="fill-ocaso-400 text-ocaso-500" /> Publicar oferta flash
         </h2>
-        <p className="text-sm text-slate-500">Aparecerá destacada en el inicio con cuenta regresiva.</p>
+        <p className="text-sm text-tinta-400">Aparecerá destacada en el inicio con cuenta regresiva.</p>
       </div>
 
       {available.length === 0 ? (
-        <p className="glass rounded-3xl p-5 text-center text-sm text-slate-400">Necesitas al menos un producto disponible.</p>
+        <p className="card p-5 text-center text-sm text-tinta-500">Necesitas al menos un producto disponible.</p>
       ) : (
-        <form onSubmit={submit} className="relative overflow-hidden rounded-[28px] border border-orange-400/25 bg-gradient-to-br from-orange-500/10 via-ink-900 to-ink-900 p-4">
-          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-orange-500/20 blur-3xl" />
+        <form onSubmit={submit} className="relative overflow-hidden rounded-[28px] border border-ocaso-300/50 bg-gradient-to-br from-ocre-100 via-cal-50 to-cal-50 p-4 shadow-soft">
+          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-ocaso-300/30 blur-3xl" />
           <div className="relative space-y-4">
             <Field label="Producto">
               <select className="input appearance-none" value={productId} onChange={(e) => setProductId(e.target.value)}>
@@ -556,10 +556,10 @@ function DealsPanel({
 
             <Field label="Precio de oferta (USD)">
               <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-500">$</span>
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-tinta-400">$</span>
                 <input className="input pl-8 pr-20" required inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" />
                 {pct > 0 && pct < 100 && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-black text-white">-{pct}%</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-teja-500 px-2 py-0.5 text-xs font-black text-white">-{pct}%</span>
                 )}
               </div>
             </Field>
@@ -567,7 +567,7 @@ function DealsPanel({
             <Field label="Termina">
               <div className="mb-2 flex gap-2">
                 {quick.map(([label, v]) => (
-                  <button key={label} type="button" onClick={() => setQuick(v)} className="flex-1 rounded-xl border border-slate-800 bg-ink-950/60 py-2 text-xs font-semibold text-slate-300 active:scale-95">
+                  <button key={label} type="button" onClick={() => setQuick(v)} className="flex-1 rounded-xl border border-cal-300 bg-white py-2 text-xs font-semibold text-tinta-700 active:scale-95">
                     {label}
                   </button>
                 ))}
@@ -575,9 +575,9 @@ function DealsPanel({
               <input className="input" type="datetime-local" value={expires} onChange={(e) => setExpires(e.target.value)} />
             </Field>
 
-            {error && <p className="rounded-2xl bg-rose-500/10 p-3 text-sm text-rose-200">{error}</p>}
+            {error && <p className="rounded-2xl bg-teja-100 p-3 text-sm text-teja-600">{error}</p>}
 
-            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 py-3.5 font-bold text-white shadow-glow-hot transition active:scale-[0.98] disabled:opacity-50">
+            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-ocaso-500 to-teja-500 py-3.5 font-bold text-white shadow-ocaso transition active:scale-[0.98] disabled:opacity-50">
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Flame size={18} />} Publicar oferta
             </button>
           </div>
@@ -585,9 +585,9 @@ function DealsPanel({
       )}
 
       <div>
-        <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-slate-400">Activas ({active.length})</h3>
+        <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-tinta-500">Activas ({active.length})</h3>
         {active.length === 0 ? (
-          <p className="text-sm text-slate-500">No tienes ofertas activas ahora.</p>
+          <p className="text-sm text-tinta-400">No tienes ofertas activas ahora.</p>
         ) : (
           <ul className="space-y-2.5">
             {active.map((d) => (
@@ -599,12 +599,12 @@ function DealsPanel({
 
       {past.length > 0 && (
         <div>
-          <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-slate-500">Anteriores</h3>
+          <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-tinta-400">Anteriores</h3>
           <ul className="space-y-2">
             {past.map((d) => {
               const p = products.find((x) => x.id === d.product_id);
               return (
-                <li key={d.id} className="flex items-center justify-between rounded-2xl border border-slate-800/70 px-4 py-2.5 text-sm text-slate-500">
+                <li key={d.id} className="flex items-center justify-between rounded-2xl border border-cal-300 px-4 py-2.5 text-sm text-tinta-400">
                   <span className="truncate">{p?.title ?? 'Producto'}</span>
                   <span>{formatPrice(d.discount_price)} · finalizada</span>
                 </li>
@@ -620,21 +620,21 @@ function DealsPanel({
 function ActiveDeal({ deal, product, onEnd }: { deal: FlashDeal; product?: Product; onEnd: () => void }) {
   const { hours, minutes, seconds } = useCountdown(deal.expires_at);
   return (
-    <li className="glass flex items-center gap-3 rounded-3xl p-3.5">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 text-white">
+    <li className="card flex items-center gap-3 p-3.5">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-ocaso-400 to-teja-500 text-white">
         <Flame size={20} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-bold text-white">{product?.title ?? 'Producto'}</p>
+        <p className="truncate font-bold text-tinta-900">{product?.title ?? 'Producto'}</p>
         <p className="text-sm">
-          <span className="font-extrabold text-orange-300">{formatPrice(deal.discount_price)}</span>{' '}
-          {product && <span className="text-slate-500 line-through">{formatPrice(product.price)}</span>}
+          <span className="font-extrabold text-ocaso-600">{formatPrice(deal.discount_price)}</span>{' '}
+          {product && <span className="text-tinta-400 line-through">{formatPrice(product.price)}</span>}
         </p>
-        <p suppressHydrationWarning className="mt-0.5 flex items-center gap-1 text-xs tabular-nums text-slate-400">
+        <p suppressHydrationWarning className="mt-0.5 flex items-center gap-1 text-xs tabular-nums text-tinta-500">
           <Clock size={12} /> {pad2(hours)}:{pad2(minutes)}:{pad2(seconds)}
         </p>
       </div>
-      <button onClick={onEnd} className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 active:scale-95">
+      <button onClick={onEnd} className="rounded-xl border border-cal-300 px-3 py-2 text-xs font-semibold text-tinta-700 active:scale-95">
         Finalizar
       </button>
     </li>
@@ -649,7 +649,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
     <div>
       <span className="label">{label}</span>
       {children}
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-tinta-400">{hint}</p>}
     </div>
   );
 }
@@ -661,7 +661,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       role="switch"
       aria-checked={on}
       onClick={() => onChange(!on)}
-      className={cn('relative h-7 w-12 shrink-0 rounded-full transition-colors', on ? 'bg-laguna-500' : 'bg-slate-700')}
+      className={cn('relative h-7 w-12 shrink-0 rounded-full transition-colors', on ? 'bg-laguna-500' : 'bg-cal-300')}
     >
       <span className={cn('absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all', on ? 'left-6' : 'left-1')} />
     </button>
@@ -671,12 +671,12 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <button aria-label="Cerrar" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="pb-safe relative max-h-[92dvh] w-full max-w-md animate-slide-up overflow-y-auto rounded-t-[32px] border-t border-slate-800 bg-ink-900 px-5 pt-3">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-700" />
+      <button aria-label="Cerrar" onClick={onClose} className="absolute inset-0 bg-tinta-900/40 backdrop-blur-sm" />
+      <div className="pb-safe relative max-h-[92dvh] w-full max-w-md animate-slide-up overflow-y-auto rounded-t-[32px] bg-cal-50 px-5 pt-3 shadow-lift">
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-cal-300" />
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-extrabold text-white">{title}</h3>
-          <button onClick={onClose} className="rounded-full p-2 text-slate-400 hover:bg-white/5" aria-label="Cerrar">
+          <h3 className="heading text-2xl">{title}</h3>
+          <button onClick={onClose} className="rounded-full p-2 text-tinta-500 hover:bg-cal-200" aria-label="Cerrar">
             <X size={20} />
           </button>
         </div>

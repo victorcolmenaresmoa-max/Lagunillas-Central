@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/plus-jakarta-sans';
+import '@fontsource-variable/fraunces/full.css';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 import './globals.css';
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: 'Lagunillas',
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
   },
   formatDetection: { telephone: false },
   icons: {
@@ -37,8 +38,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#090d16',
-  colorScheme: 'dark',
+  themeColor: '#f8f3e8',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

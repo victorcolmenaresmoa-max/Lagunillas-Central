@@ -70,30 +70,30 @@ export default function InstallPrompt() {
 
   return (
     <div className="pb-safe fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-3">
-      <div className="glass animate-slide-up rounded-3xl p-2.5 pl-3 shadow-2xl shadow-black/60">
+      <div className="glass animate-slide-up rounded-3xl p-2.5 pl-3 shadow-lift">
         <div className="flex items-center gap-3">
           <LogoMark className="h-10 w-10 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-white">Instala la app</p>
-            <p className="truncate text-xs text-slate-400">Ábrela directo desde tu pantalla</p>
+            <p className="truncate text-sm font-bold text-tinta-900">Instala la app</p>
+            <p className="truncate text-xs text-tinta-500">Ábrela directo desde tu pantalla</p>
           </div>
           {!(iosHelp || (isIOS && !deferred)) && (
             <button onClick={install} className="btn-primary shrink-0 rounded-xl px-3.5 py-2 text-sm">
               <Download size={15} /> Instalar
             </button>
           )}
-          <button onClick={dismiss} aria-label="Cerrar" className="shrink-0 rounded-full p-1.5 text-slate-500 transition hover:bg-white/5 hover:text-slate-300">
+          <button onClick={dismiss} aria-label="Cerrar" className="shrink-0 rounded-full p-1.5 text-tinta-400 transition hover:bg-cal-200 hover:text-tinta-700">
             <X size={18} />
           </button>
         </div>
 
         {(iosHelp || (isIOS && !deferred)) && (
-          <div className="mt-2.5 space-y-1.5 rounded-2xl bg-ink-950/70 p-3 text-xs text-slate-300">
+          <div className="mt-2.5 space-y-1.5 rounded-2xl bg-cal-100 p-3 text-xs text-tinta-700">
             <p className="flex items-center gap-2">
-              1. Toca <Share size={14} className="text-sky-400" /> <b>Compartir</b> en tu navegador
+              1. Toca <Share size={14} className="text-cielo-500" /> <b>Compartir</b> en tu navegador
             </p>
             <p className="flex items-center gap-2">
-              2. Elige <PlusSquare size={14} className="text-sky-400" /> <b>Agregar a inicio</b>
+              2. Elige <PlusSquare size={14} className="text-cielo-500" /> <b>Agregar a inicio</b>
             </p>
           </div>
         )}

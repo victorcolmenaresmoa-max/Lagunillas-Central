@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Mail, AlertCircle, Info } from 'lucide-react';
 import { LogoMark } from '@/components/Logo';
+import Landscape from '@/components/Landscape';
 import { getBrowserClient } from '@/lib/supabase-browser';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
@@ -56,26 +57,28 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-10">
-      <div className="pointer-events-none absolute left-1/2 top-24 h-64 w-64 -translate-x-1/2 rounded-full bg-laguna-500/20 blur-[90px]" />
-
-      <div className="pt-safe relative pt-4">
-        <Link href="/" className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-800 bg-ink-850/70 text-slate-300 transition active:scale-90" aria-label="Volver">
-          <ArrowLeft size={20} />
-        </Link>
+    <main className="relative mx-auto flex min-h-dvh max-w-md flex-col pb-10">
+      <div className="relative h-[260px] overflow-hidden">
+        <Landscape className="absolute inset-0" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-cal-100" />
+        <div className="pt-safe relative px-5 pt-4">
+          <Link href="/" className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/30 text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-90" aria-label="Volver">
+            <ArrowLeft size={20} />
+          </Link>
+        </div>
       </div>
 
-      <div className="relative mt-10 flex animate-fade-up flex-col items-center text-center">
-        <LogoMark className="h-16 w-16 shadow-glow" />
-        <h1 className="mt-5 text-[28px] font-extrabold tracking-tight text-white">Panel de comercios</h1>
-        <p className="mt-1.5 max-w-[280px] text-sm text-slate-400">
-          Gestiona tu negocio, tu catálogo y tus ofertas en <span className="text-gradient font-semibold">Lagunillas Central</span>.
+      <div className="relative -mt-24 flex animate-fade-up flex-col items-center px-5 text-center">
+        <LogoMark className="h-16 w-16 rounded-2xl shadow-lift ring-4 ring-cal-100" />
+        <h1 className="heading mt-4 text-[30px]">Panel de comercios</h1>
+        <p className="mt-1.5 max-w-[290px] text-sm text-tinta-500">
+          Gestiona tu negocio, tu catálogo y tus ofertas en <span className="font-semibold text-laguna-600">Lagunillas Central</span>.
         </p>
       </div>
 
-      <form onSubmit={onSubmit} className="glass relative mt-8 animate-fade-up space-y-4 rounded-[28px] p-5" style={{ animationDelay: '100ms' }}>
+      <form onSubmit={onSubmit} className="card relative mx-5 mt-7 animate-fade-up space-y-4 rounded-[28px] p-5" style={{ animationDelay: '100ms' }}>
         {!isSupabaseConfigured && (
-          <div className="flex gap-2.5 rounded-2xl border border-sky-400/30 bg-sky-400/10 p-3 text-xs text-sky-200">
+          <div className="flex gap-2.5 rounded-2xl border border-cielo-400/40 bg-cielo-100 p-3 text-xs text-cielo-600">
             <Info size={16} className="mt-0.5 shrink-0" />
             <p>
               <b>Modo demostración.</b> La base de datos aún no está conectada. Toca &quot;Entrar&quot; para explorar el panel con datos de ejemplo.
@@ -86,7 +89,7 @@ export default function LoginPage() {
         <div>
           <label htmlFor="email" className="label">Correo</label>
           <div className="relative">
-            <Mail size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Mail size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-tinta-400" />
             <input
               id="email"
               type="email"
@@ -104,7 +107,7 @@ export default function LoginPage() {
         <div>
           <label htmlFor="password" className="label">Contraseña</label>
           <div className="relative">
-            <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-tinta-400" />
             <input
               id="password"
               type={show ? 'text' : 'password'}
@@ -118,7 +121,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShow((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-500 hover:text-slate-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-tinta-400 hover:text-tinta-700"
               aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
             >
               {show ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -127,24 +130,24 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="flex items-start gap-2 rounded-2xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">
+          <p className="flex items-start gap-2 rounded-2xl border border-teja-400/40 bg-teja-100 p-3 text-sm text-teja-600">
             <AlertCircle size={16} className="mt-0.5 shrink-0" /> {error}
           </p>
         )}
-        {info && <p className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">{info}</p>}
+        {info && <p className="rounded-2xl border border-laguna-400/40 bg-laguna-100 p-3 text-sm text-laguna-700">{info}</p>}
 
         <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base">
           {loading ? <Loader2 size={20} className="animate-spin" /> : 'Entrar'}
         </button>
 
         {isSupabaseConfigured && (
-          <button type="button" onClick={onForgot} className="w-full text-center text-sm font-medium text-slate-400 hover:text-slate-200">
+          <button type="button" onClick={onForgot} className="w-full text-center text-sm font-medium text-tinta-500 hover:text-tinta-900">
             ¿Olvidaste tu contraseña?
           </button>
         )}
       </form>
 
-      <p className="relative mt-6 text-center text-xs text-slate-500">
+      <p className="relative mt-6 px-5 text-center text-xs text-tinta-400">
         ¿Quieres registrar tu negocio? Escríbenos y te creamos tu acceso.
       </p>
     </main>

@@ -21,13 +21,13 @@ export default function MerchantAvatar({ name, category, logoUrl, size = 'md', c
   const { gradient, icon: Icon } = styleFor(category);
   if (logoUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={logoUrl} alt={name} className={cn(sizes[size], 'shrink-0 object-cover ring-1 ring-white/10', className)} />;
+    return <img src={logoUrl} alt={name} className={cn(sizes[size], 'shrink-0 object-cover ring-1 ring-black/5 shadow-soft', className)} />;
   }
   return (
     <div
       className={cn(
         sizes[size],
-        'relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br ring-1 ring-white/10',
+        'relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br ring-1 ring-black/5 shadow-soft',
         gradient,
         className
       )}
