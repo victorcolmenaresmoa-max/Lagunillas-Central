@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #090d16;
+  color: #e2e8f0;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+/* Fondo ambiental sutil */
+.app-bg {
+  background:
+    radial-gradient(600px 300px at 90% -5%, rgba(20, 199, 178, 0.14), transparent 60%),
+    radial-gradient(500px 280px at -10% 20%, rgba(59, 130, 246, 0.1), transparent 60%),
+    #090d16;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-laguna-300 via-laguna-400 to-sky-400 bg-clip-text text-transparent;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply border border-slate-800/80 bg-ink-900/60 backdrop-blur-xl;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-laguna-400 to-sky-500 px-5 py-3 font-semibold text-ink-950 shadow-glow transition active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-800 bg-ink-850/70 px-4 py-2.5 font-medium text-slate-200 transition hover:border-slate-700 active:scale-[0.97];
+  }
+  .input {
+    @apply w-full rounded-2xl border border-slate-800 bg-ink-900/80 px-4 py-3 text-[15px] text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-laguna-500/70 focus:ring-4 focus:ring-laguna-500/10;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
