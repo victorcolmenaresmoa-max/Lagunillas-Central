@@ -238,6 +238,7 @@ declare
   r text := case when wanted in ('merchant', 'delivery') then wanted else 'client' end;
   biz jsonb := meta -> 'business';
   drv jsonb := meta -> 'driver';
+  lg jsonb := meta -> 'legal';
   cat text;
 begin
   insert into public.profiles (user_id, role, full_name, phone)
@@ -271,6 +272,37 @@ begin
       'pending'
     )
     on conflict (user_id) do nothing;
+  end if;
+
+  -- Datos legales (cédula, RIF, contacto de emergencia…): tabla privada, ver sección 8
+  if r in ('merchant', 'delivery') and lg is not null then
+    begin
+      insert into public.legal_profiles (
+        user_id, kind, legal_name, id_type, id_number, birth_date, home_address,
+        business_legal_name, rif, emergency_name, emergency_phone,
+        vehicle_brand, vehicle_model, vehicle_color, has_license, has_rcv, terms_version
+      ) values (
+        new.id, r,
+        left(nullif(trim(lg ->> 'legal_name'), ''), 120),
+        case when lg ->> 'id_type' in ('V', 'E', 'P') then lg ->> 'id_type' end,
+        left(nullif(regexp_replace(coalesce(lg ->> 'id_number', ''), '[^0-9A-Za-z]', '', 'g'), ''), 20),
+        public.try_date(lg ->> 'birth_date'),
+        left(nullif(trim(lg ->> 'home_address'), ''), 200),
+        left(nullif(trim(lg ->> 'business_legal_name'), ''), 160),
+        left(nullif(upper(regexp_replace(coalesce(lg ->> 'rif', ''), '[^0-9A-Za-z]', '', 'g')), ''), 12),
+        left(nullif(trim(lg ->> 'emergency_name'), ''), 120),
+        left(nullif(trim(lg ->> 'emergency_phone'), ''), 20),
+        left(nullif(trim(lg ->> 'vehicle_brand'), ''), 40),
+        left(nullif(trim(lg ->> 'vehicle_model'), ''), 40),
+        left(nullif(trim(lg ->> 'vehicle_color'), ''), 30),
+        case when lg ->> 'has_license' in ('true', 'false') then (lg ->> 'has_license')::boolean end,
+        case when lg ->> 'has_rcv' in ('true', 'false') then (lg ->> 'has_rcv')::boolean end,
+        left(nullif(lg ->> 'terms_version', ''), 20)
+      )
+      on conflict do nothing;
+    exception when others then
+      null; -- si algo falla, la cuenta igual se crea y los datos se completan en el panel
+    end;
   end if;
   return new;
 end;
@@ -674,6 +706,136 @@ drop policy if exists "media_owner_delete" on storage.objects;
 create policy "media_owner_delete" on storage.objects
   for delete to authenticated
   using (bucket_id = 'media' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+
+-- ---------------------------------------------------------------------
+-- 8. DATOS LEGALES Y DOCUMENTOS (privados)
+--    Cédula, RIF, fecha de nacimiento, contacto de emergencia, vehículo
+--    y aceptación de los términos. SOLO los ve el dueño de la cuenta y el
+--    administrador: ni el público, ni los comercios, ni otros repartidores.
+-- ---------------------------------------------------------------------
+
+-- Convierte texto a fecha sin fallar (si viene mal, queda vacío)
+create or replace function public.try_date(p text)
+returns date language plpgsql stable as $$
+begin
+  return nullif(p, '')::date;
+exception when others then
+  return null;
+end;
+$$;
+
+create table if not exists public.legal_profiles (
+  user_id              uuid primary key references auth.users (id) on delete cascade,
+  kind                 text not null check (kind in ('merchant', 'delivery')),
+  legal_name           text,          -- nombre completo como aparece en la cédula
+  id_type              text check (id_type in ('V', 'E', 'P')),
+  id_number            text,
+  birth_date           date,
+  home_address         text,
+  business_legal_name  text,          -- comercio: razón social o nombre del titular
+  rif                  text,          -- comercio: RIF sin guiones, ej. J123456789
+  emergency_name       text,          -- repartidor
+  emergency_phone      text,
+  vehicle_brand        text,
+  vehicle_model        text,
+  vehicle_color        text,
+  has_license          boolean,
+  has_rcv              boolean,       -- seguro de Responsabilidad Civil Vehicular vigente
+  docs                 jsonb not null default '{}'::jsonb, -- { "cedula": "ruta", "rif": "ruta", ... } en el bucket "documentos"
+  terms_version        text,
+  terms_accepted_at    timestamptz,
+  admin_notes          text,
+  created_at           timestamptz not null default now(),
+  updated_at           timestamptz not null default now()
+);
+-- Una misma cédula no puede tener dos cuentas del mismo tipo (evita que alguien suspendido vuelva con otra cuenta)
+create unique index if not exists legal_id_unique on public.legal_profiles (kind, id_type, id_number) where id_number is not null;
+
+-- Reglas: la fecha de aceptación la pone la base; los datos de identidad
+-- no se pueden cambiar después de aprobada la cuenta (solo el administrador)
+create or replace function public.guard_legal()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare approved boolean;
+begin
+  new.updated_at := now();
+  if public.is_system() or public.is_admin() then
+    if tg_op = 'INSERT' and new.terms_version is not null and new.terms_accepted_at is null then
+      new.terms_accepted_at := now();
+    end if;
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.admin_notes := null;
+    new.created_at := now();
+    new.terms_accepted_at := case when new.terms_version is not null then now() end;
+    return new;
+  end if;
+  new.user_id := old.user_id;
+  new.kind := old.kind;
+  new.created_at := old.created_at;
+  new.admin_notes := old.admin_notes;
+  if new.terms_version is distinct from old.terms_version and new.terms_version is not null then
+    new.terms_accepted_at := now();
+  else
+    new.terms_version := old.terms_version;
+    new.terms_accepted_at := old.terms_accepted_at;
+  end if;
+  approved := exists (select 1 from public.merchants where user_id = old.user_id and status = 'approved')
+           or exists (select 1 from public.drivers where user_id = old.user_id and status = 'approved');
+  if approved then
+    new.legal_name := old.legal_name;
+    new.id_type := old.id_type;
+    new.id_number := old.id_number;
+    new.birth_date := old.birth_date;
+    new.business_legal_name := old.business_legal_name;
+    new.rif := old.rif;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists guard_legal on public.legal_profiles;
+create trigger guard_legal before insert or update on public.legal_profiles
+  for each row execute function public.guard_legal();
+
+alter table public.legal_profiles enable row level security;
+drop policy if exists "legal_select_own" on public.legal_profiles;
+create policy "legal_select_own" on public.legal_profiles
+  for select to authenticated using (auth.uid() = user_id or public.is_admin());
+drop policy if exists "legal_insert_own" on public.legal_profiles;
+create policy "legal_insert_own" on public.legal_profiles
+  for insert to authenticated with check (auth.uid() = user_id or public.is_admin());
+drop policy if exists "legal_update_own" on public.legal_profiles;
+create policy "legal_update_own" on public.legal_profiles
+  for update to authenticated
+  using (auth.uid() = user_id or public.is_admin())
+  with check (auth.uid() = user_id or public.is_admin());
+drop policy if exists "legal_admin_delete" on public.legal_profiles;
+create policy "legal_admin_delete" on public.legal_profiles
+  for delete to authenticated using (public.is_admin());
+
+-- Bucket PRIVADO "documentos": fotos de cédula, RIF, licencia, etc.
+-- No tiene enlace público: solo el dueño y el administrador pueden abrirlas.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('documentos', 'documentos', false, 8388608, array['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+on conflict (id) do update set public = false, file_size_limit = 8388608,
+  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+drop policy if exists "docs_owner_read" on storage.objects;
+create policy "docs_owner_read" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'documentos' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+drop policy if exists "docs_owner_insert" on storage.objects;
+create policy "docs_owner_insert" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'documentos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "docs_owner_update" on storage.objects;
+create policy "docs_owner_update" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'documentos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "docs_owner_delete" on storage.objects;
+create policy "docs_owner_delete" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'documentos' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
 
 -- =====================================================================
 --  HACERTE ADMINISTRADOR (solo una vez)

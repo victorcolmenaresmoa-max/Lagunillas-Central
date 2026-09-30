@@ -18,3 +18,11 @@ export const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 
 export const clean = (s: unknown, max: number) =>
   typeof s === 'string' ? s.replace(/\s+/g, ' ').trim().slice(0, max) : '';
+
+/** 584141234567 → 0414-1234567 (para mostrar) */
+export function displayPhone(p: string | null | undefined): string {
+  if (!p) return '';
+  const d = p.replace(/\D/g, '');
+  const local = d.startsWith('58') && d.length === 12 ? '0' + d.slice(2) : d;
+  return /^0\d{10}$/.test(local) ? `${local.slice(0, 4)}-${local.slice(4)}` : p;
+}

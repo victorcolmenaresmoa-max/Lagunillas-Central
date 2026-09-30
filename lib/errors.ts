@@ -4,6 +4,7 @@ export function friendlyError(err: unknown): string {
   // Nuestros errores de la base vienen como "CODIGO: mensaje legible"
   const m = raw.match(/^(PLAN_[A-Z]+|OFERTA_INVALIDA|NO_AUTORIZADO|YA_TOMADO|LIMITE|ESTADO_INVALIDO):\s*(.+)$/);
   if (m) return m[2];
+  if (/legal_id_unique/i.test(raw)) return 'Esa cédula ya está registrada en otra cuenta. Si es un error, escríbele a la administración.';
   if (/Invalid login credentials/i.test(raw)) return 'Correo o contraseña incorrectos.';
   if (/Email link is invalid or has expired/i.test(raw)) return 'Este enlace ya se usó o venció. Pide un código nuevo.';
   if (/Token has expired or is invalid|otp_expired|invalid.*otp/i.test(raw)) return 'El código no es correcto o ya venció. Revísalo o pide uno nuevo.';

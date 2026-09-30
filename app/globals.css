@@ -86,3 +86,24 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Texto de términos y privacidad */
+.legal-body ul {
+  @apply list-disc space-y-1.5 pl-5 marker:text-laguna-500;
+}
+.legal-body b,
+.legal-body strong {
+  @apply font-bold text-tinta-900;
+}
+.legal-body a {
+  @apply font-semibold text-laguna-700 underline underline-offset-2;
+}
+.legal-body table {
+  @apply w-full overflow-hidden rounded-2xl text-left text-sm ring-1 ring-cal-300;
+}
+.legal-body th {
+  @apply bg-cal-200 px-3 py-2 text-xs font-bold uppercase tracking-wider text-tinta-600;
+}
+.legal-body td {
+  @apply border-t border-cal-200 bg-white px-3 py-2 align-top;
+}

@@ -9,6 +9,7 @@ import FlashDeals from './FlashDeals';
 import InstallPrompt from './InstallPrompt';
 import MerchantAvatar from './MerchantAvatar';
 import AccountMenu from './AccountMenu';
+import { LegalLinks } from './auth';
 import { ALL_CATEGORY, CATEGORY_STYLES, styleFor } from '@/lib/categories';
 import { CATEGORIES, type FlashDealFull, type Merchant } from '@/lib/types';
 import { cn, formatTime, isOpenNow } from '@/lib/utils';
@@ -224,6 +225,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
             </Link>
           </div>
         </footer>
+        <LegalLinks className="mt-6 px-4" />
       </div>
 
       <InstallPrompt />

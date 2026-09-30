@@ -17,9 +17,27 @@ Se instala en el teléfono como una app (PWA), sin pasar por tiendas de aplicaci
 | **Repartidor** | `/repartidor` | Repartidores aprobados | Se pone disponible, recibe una notificación con sonido por cada pedido, lo acepta (el primero que acepta se lo queda), lo marca como recogido y entregado, y ve sus ganancias |
 | **Administración** | `/admin` | Tú | Aprueba o suspende comercios y repartidores, asigna planes, destaca comercios, ve todos los pedidos y ajusta el precio del delivery y de los planes |
 
+Además hay dos páginas públicas: **`/terminos`** (Términos y Condiciones) y **`/privacidad`** (Política de Privacidad). Están enlazadas en el registro, al hacer un pedido y al pie de la app.
+
 Todos entran por **`/entrar`** (Iniciar sesión) y cada quien llega automáticamente a su panel. Si olvidan la contraseña, la recuperan en **`/entrar/recuperar`** con un código que llega al correo. Los comercios y repartidores se registran en **`/registro`** y quedan **en revisión** hasta que tú los apruebas.
 
 ---
+
+## Datos legales y documentos
+
+Para registrarse, comercios y repartidores dan datos legales en 3 pasos y aceptan los Términos y la Política de Privacidad:
+
+| | Comercio | Repartidor |
+|---|---|---|
+| Identidad | Razón social, RIF, nombre, cédula, fecha de nacimiento y teléfono del responsable | Nombre, cédula, fecha de nacimiento, teléfono, dirección donde vive |
+| Extra | — | Vehículo (marca, modelo, color, placa), licencia y RCV si es moto o carro; contacto de emergencia |
+| Documentos (desde su panel) | Cédula del responsable, RIF, licencia de actividades (opcional) | Cédula, selfie con la cédula; licencia, certificado de circulación y RCV si es moto o carro |
+
+- Solo pueden registrarse **mayores de 18 años**, y una cédula no puede tener dos cuentas del mismo tipo.
+- Estos datos van a una tabla privada (`legal_profiles`) y los documentos a un almacén privado (`documentos`): **solo los ven el dueño de la cuenta y tú**. Ni el público ni los comercios ni otros repartidores.
+- En **Administración → Comercios / Repartidores**, el botón 🛡 muestra si la verificación está completa, los datos y las fotos de los documentos, y te deja notas internas. Si apruebas una cuenta incompleta, la app te avisa antes.
+- Quienes se registraron antes de este cambio ven en su panel **"Completa tu verificación"**.
+- Si algún día cambias los términos, cambia la fecha `TERMS_VERSION` en `lib/legal.ts`: a todos se les pedirá aceptarlos de nuevo.
 
 ## Membresías de los comercios
 
@@ -63,6 +81,7 @@ Todos entran por **`/entrar`** (Iniciar sesión) y cada quien llega automáticam
    | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | clave pública de notificaciones |
    | `VAPID_PRIVATE_KEY` | clave privada de notificaciones |
    | `VAPID_SUBJECT` | `mailto:` + tu correo, por ejemplo `mailto:tucorreo@gmail.com` |
+   | `NEXT_PUBLIC_CONTACT_EMAIL` | (opcional) correo de contacto que aparece en Términos y Privacidad |
 
    Las dos claves de notificaciones se generan con `npm run vapid`. Si ya te las dieron, usa esas. Guárdalas: si las cambias, cada teléfono debe volver a activar las notificaciones.
 3. Pulsa **Deploy**. Al terminar, copia tu dirección, por ejemplo `https://lagunillas-central.vercel.app`.
@@ -138,6 +157,7 @@ npm install
 cp .env.example .env.local   # rellena las claves
 npm run dev                  # http://localhost:3000
 npm run test:db              # 36 pruebas de reglas de la base (usar SOLO con una base de pruebas)
+# Pruebas de privacidad de datos legales sin Supabase: ver tests/sql/LEEME.md
 ```
 
 ```

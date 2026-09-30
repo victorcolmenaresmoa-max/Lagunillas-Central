@@ -89,6 +89,7 @@ export function AuthShell({
         </div>
 
         {footer && <div className="mt-6">{footer}</div>}
+        <LegalLinks className="mt-8" />
       </div>
     </main>
   );
@@ -364,3 +365,159 @@ export function emailSuggestion(email: string): string | null {
 }
 
 export const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+
+/* ================================================================
+   Cédula: tipo (V / E / Pasaporte) + número
+   ================================================================ */
+export function IdField({
+  label = 'Cédula de identidad',
+  type,
+  number,
+  onType,
+  onNumber,
+  error,
+  hint,
+}: {
+  label?: string;
+  type: 'V' | 'E' | 'P';
+  number: string;
+  onType: (t: 'V' | 'E' | 'P') => void;
+  onNumber: (n: string) => void;
+  error?: string | null;
+  hint?: ReactNode;
+}) {
+  const id = useId();
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-tinta-500">
+        {label}
+      </label>
+      <div className="flex gap-2">
+        <select
+          aria-label="Tipo de documento"
+          value={type}
+          onChange={(e) => onType(e.target.value as 'V' | 'E' | 'P')}
+          className={cn('input h-[52px] w-[92px] shrink-0 px-3 font-bold', error && 'border-teja-400')}
+        >
+          <option value="V">V</option>
+          <option value="E">E</option>
+          <option value="P">Pasap.</option>
+        </select>
+        <input
+          id={id}
+          value={number}
+          onChange={(e) => onNumber(e.target.value)}
+          inputMode={type === 'P' ? 'text' : 'numeric'}
+          autoComplete="off"
+          placeholder={type === 'P' ? 'Número de pasaporte' : '12345678'}
+          aria-invalid={Boolean(error)}
+          className={cn('input h-[52px] min-w-0 flex-1 tabular-nums', error && 'border-teja-400 focus:border-teja-400 focus:ring-teja-400/15')}
+        />
+      </div>
+      {error ? (
+        <p className="mt-1.5 flex items-start gap-1.5 text-[13px] font-medium text-teja-600">
+          <AlertCircle size={14} className="mt-0.5 shrink-0" /> {error}
+        </p>
+      ) : hint ? (
+        <div className="mt-1.5 text-xs text-tinta-400">{hint}</div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ================================================================
+   Pregunta de Sí / No
+   ================================================================ */
+export function YesNo({
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+}: {
+  label: string;
+  value: boolean | null;
+  onChange: (v: boolean) => void;
+  error?: string | null;
+  hint?: ReactNode;
+}) {
+  return (
+    <div>
+      <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-tinta-500">{label}</span>
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={label}>
+        {([
+          [true, 'Sí'],
+          [false, 'No'],
+        ] as const).map(([v, text]) => (
+          <button
+            key={text}
+            type="button"
+            role="radio"
+            aria-checked={value === v}
+            onClick={() => onChange(v)}
+            className={cn(
+              'h-12 rounded-2xl border text-sm font-bold transition active:scale-95',
+              value === v ? 'border-laguna-400 bg-laguna-100 text-laguna-700' : error ? 'border-teja-400 bg-white text-tinta-500' : 'border-cal-300 bg-white text-tinta-500'
+            )}
+          >
+            {text}
+          </button>
+        ))}
+      </div>
+      {error ? (
+        <p className="mt-1.5 flex items-start gap-1.5 text-[13px] font-medium text-teja-600">
+          <AlertCircle size={14} className="mt-0.5 shrink-0" /> {error}
+        </p>
+      ) : hint ? (
+        <div className="mt-1.5 text-xs text-tinta-400">{hint}</div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ================================================================
+   Casilla para aceptar (declaración o términos)
+   ================================================================ */
+export function CheckRow({ checked, onChange, error, children }: { checked: boolean; onChange: (v: boolean) => void; error?: string | null; children: ReactNode }) {
+  return (
+    <div>
+      <label className={cn('flex items-start gap-3 rounded-2xl p-3 text-sm text-tinta-600', error ? 'bg-teja-100 ring-1 ring-teja-400/50' : 'bg-cal-100')}>
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-laguna-600" />
+        <span>{children}</span>
+      </label>
+      {error && <p className="mt-1.5 text-[13px] font-medium text-teja-600">{error}</p>}
+    </div>
+  );
+}
+
+/** Texto "Acepto los Términos… y la Política de Privacidad" con enlaces que abren aparte */
+export function TermsText({ prefix = 'Leí y acepto los' }: { prefix?: string }) {
+  return (
+    <>
+      {prefix}{' '}
+      <Link href="/terminos" target="_blank" className="font-bold text-laguna-700 underline underline-offset-2">
+        Términos y Condiciones
+      </Link>{' '}
+      y la{' '}
+      <Link href="/privacidad" target="_blank" className="font-bold text-laguna-700 underline underline-offset-2">
+        Política de Privacidad
+      </Link>{' '}
+      de Lagunillas Central.
+    </>
+  );
+}
+
+/** Enlaces legales pequeños para pies de página */
+export function LegalLinks({ className }: { className?: string }) {
+  return (
+    <p className={cn('text-center text-xs text-tinta-400', className)}>
+      <Link href="/terminos" className="font-semibold hover:text-tinta-700">
+        Términos y Condiciones
+      </Link>
+      <span className="mx-2">·</span>
+      <Link href="/privacidad" className="font-semibold hover:text-tinta-700">
+        Política de Privacidad
+      </Link>
+    </p>
+  );
+}

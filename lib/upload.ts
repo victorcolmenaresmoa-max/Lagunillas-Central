@@ -71,3 +71,41 @@ export async function removeImage(sb: SupabaseClient, publicUrl: string | null |
   const path = decodeURIComponent(publicUrl.slice(i + marker.length));
   await sb.storage.from(BUCKET).remove([path]).catch(() => {});
 }
+
+/* ================================================================
+   Documentos privados (cédula, RIF, licencia…) → bucket "documentos"
+   No tienen enlace público: se abren con un enlace temporal.
+   ================================================================ */
+const DOCS_BUCKET = 'documentos';
+const MAX_PDF = 8 * 1024 * 1024;
+
+/** Sube un documento y devuelve su ruta dentro del bucket privado */
+export async function uploadDocument(sb: SupabaseClient, userId: string, file: File, key: string): Promise<string> {
+  let body: Blob;
+  let ext: string;
+  if (file.type === 'application/pdf') {
+    if (file.size > MAX_PDF) throw new Error('El PDF es muy pesado (máximo 8 MB).');
+    body = file;
+    ext = 'pdf';
+  } else {
+    // Más resolución que las fotos normales para que se lean los datos
+    body = await compressImage(file, 2000, 0.86);
+    ext = body.type === 'image/webp' ? 'webp' : 'jpg';
+  }
+  const path = `${userId}/${key}-${Date.now()}.${ext}`;
+  const { error } = await sb.storage.from(DOCS_BUCKET).upload(path, body, { contentType: body.type || file.type, upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+/** Enlace temporal (10 minutos) para ver un documento */
+export async function documentUrl(sb: SupabaseClient, path: string): Promise<string> {
+  const { data, error } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(path, 600);
+  if (error || !data) throw error ?? new Error('No pudimos abrir el documento.');
+  return data.signedUrl;
+}
+
+export async function removeDocument(sb: SupabaseClient, path: string | null | undefined) {
+  if (!path) return;
+  await sb.storage.from(DOCS_BUCKET).remove([path]).catch(() => {});
+}

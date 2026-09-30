@@ -1,5 +1,6 @@
 'use client';
 
+import { VerificationCard } from '@/components/Verification';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -152,6 +153,10 @@ function PanelInner() {
         <StatusBanner status={merchant.status} kind="comercio" />
 
         {tab === 'pedidos' && (
+          <VerificationCard sb={sb} userId={session.user.id} kind="merchant" approved={merchant.status === 'approved'} notify={notify} hideWhenComplete />
+        )}
+
+        {tab === 'pedidos' && (
           <OrdersTab
             sb={sb}
             userId={session.user.id}
@@ -226,6 +231,8 @@ function PanelInner() {
             onUpgrade={() => setTab('plan')}
           />
         )}
+
+        {tab === 'perfil' && <VerificationCard sb={sb} userId={session.user.id} kind="merchant" approved={merchant.status === 'approved'} notify={notify} />}
 
         {tab === 'plan' && <PlanTab merchant={merchant} settings={settings} productsCount={products.length} />}
       </div>

@@ -20,7 +20,11 @@ import {
   Save,
   Phone,
   XCircle,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
+import { LegalReview } from '@/components/Verification';
+import { missingItems, type LegalProfile } from '@/lib/legal';
 import MerchantAvatar from '@/components/MerchantAvatar';
 import { PanelHeader, PushCard } from '@/components/panel';
 import { ApprovalPill, BottomNav, Empty, Field, FullLoader, Sheet, useToast } from '@/components/ui';
@@ -33,6 +37,31 @@ import { isValidPhone, normalizePhone } from '@/lib/validate';
 import { cn, formatPrice } from '@/lib/utils';
 import type { AppSettings, ApprovalStatus, DeliveryRequest, Driver, Merchant, PlanId } from '@/lib/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+type OpenLegal = (v: { userId: string; kind: 'merchant' | 'delivery'; vehicle?: string | null; title: string }) => void;
+
+/** Botón con el estado de la verificación (datos + documentos) */
+function LegalButton({ missing, onClick }: { missing: string[] | null; onClick: () => void }) {
+  const ok = missing !== null && missing.length === 0;
+  return (
+    <button
+      onClick={onClick}
+      className={cn('btn-ghost px-3 py-2 text-xs', ok ? 'text-laguna-700' : 'text-ocre-600')}
+      title={ok ? 'Verificación completa' : missing ? `Falta: ${missing.join(', ')}` : 'Sin datos legales'}
+    >
+      {ok ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />} {ok ? 'Verificado' : missing ? `Faltan ${missing.length}` : 'Sin datos'}
+    </button>
+  );
+}
+
+const confirmApproval = (name: string, missing: string[] | null) =>
+  missing && missing.length === 0
+    ? true
+    : confirm(
+        missing
+          ? `A ${name} le falta: ${missing.join(', ')}.\n\n¿Aprobar de todas formas?`
+          : `${name} todavía no tiene datos legales ni documentos.\n\n¿Aprobar de todas formas?`
+      );
 
 type Tab = 'resumen' | 'comercios' | 'repartidores' | 'pedidos' | 'ajustes';
 type Order = DeliveryRequest & { merchant: { name: string } | null; driver: { full_name: string } | null };
@@ -48,11 +77,13 @@ function AdminInner() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [legal, setLegal] = useState<Record<string, LegalProfile>>({});
+  const [legalFor, setLegalFor] = useState<{ userId: string; kind: 'merchant' | 'delivery'; vehicle?: string | null; title: string } | null>(null);
   const [ready, setReady] = useState(false);
 
   const load = useCallback(async () => {
     if (!sb) return;
-    const [m, d, o, s] = await Promise.all([
+    const [m, d, o, s, l] = await Promise.all([
       sb.from('merchants').select('*').order('created_at', { ascending: false }),
       sb.from('drivers').select('*').order('created_at', { ascending: false }),
       sb
@@ -61,7 +92,9 @@ function AdminInner() {
         .order('created_at', { ascending: false })
         .limit(150),
       sb.from('app_settings').select('*').eq('id', 1).maybeSingle(),
+      sb.from('legal_profiles').select('*'),
     ]);
+    setLegal(Object.fromEntries(((l.data ?? []) as LegalProfile[]).map((r) => [r.user_id, r])));
     setMerchants((m.data ?? []) as Merchant[]);
     setDrivers((d.data ?? []) as Driver[]);
     setOrders((o.data ?? []) as Order[]);
@@ -101,8 +134,8 @@ function AdminInner() {
         {tab === 'resumen' && (
           <Overview sb={sb} userId={session.user.id} merchants={merchants} drivers={drivers} orders={orders} go={setTab} notify={notify} />
         )}
-        {tab === 'comercios' && <MerchantsTab merchants={merchants} update={updateMerchant} />}
-        {tab === 'repartidores' && <DriversTab drivers={drivers} orders={orders} update={updateDriver} />}
+        {tab === 'comercios' && <MerchantsTab merchants={merchants} update={updateMerchant} legal={legal} openLegal={setLegalFor} />}
+        {tab === 'repartidores' && <DriversTab drivers={drivers} orders={orders} update={updateDriver} legal={legal} openLegal={setLegalFor} />}
         {tab === 'pedidos' && <OrdersTab sb={sb} orders={orders} reload={load} notify={notify} />}
         {tab === 'ajustes' && settings && (
           <SettingsTab
@@ -129,6 +162,19 @@ function AdminInner() {
         onChange={setTab}
         badges={{ comercios: pendingM || undefined, repartidores: pendingD || undefined }}
       />
+      {legalFor && (
+        <Sheet title={legalFor.title} onClose={() => setLegalFor(null)}>
+          <LegalReview
+            sb={sb}
+            userId={legalFor.userId}
+            kind={legalFor.kind}
+            vehicle={legalFor.vehicle}
+            row={legal[legalFor.userId] ?? null}
+            notify={notify}
+            onChanged={(r) => setLegal((x) => ({ ...x, [r.user_id]: r }))}
+          />
+        </Sheet>
+      )}
       {toastNode}
     </main>
   );
@@ -208,7 +254,17 @@ function Overview({
 }
 
 /* ---------------- Comercios ---------------- */
-function MerchantsTab({ merchants, update }: { merchants: Merchant[]; update: (id: string, p: Partial<Merchant>, msg: string) => Promise<void> }) {
+function MerchantsTab({
+  merchants,
+  update,
+  legal,
+  openLegal,
+}: {
+  merchants: Merchant[];
+  update: (id: string, p: Partial<Merchant>, msg: string) => Promise<void>;
+  legal: Record<string, LegalProfile>;
+  openLegal: OpenLegal;
+}) {
   const [filter, setFilter] = useState<ApprovalStatus | 'all'>(merchants.some((m) => m.status === 'pending') ? 'pending' : 'approved');
   const [q, setQ] = useState('');
   const [planFor, setPlanFor] = useState<Merchant | null>(null);
@@ -235,6 +291,7 @@ function MerchantsTab({ merchants, update }: { merchants: Merchant[]; update: (i
         list.map((m) => {
           const plan = effectivePlan(m);
           const left = daysLeft(m.plan_expires_at);
+          const missing = m.user_id && legal[m.user_id] ? missingItems('merchant', legal[m.user_id]) : null;
           return (
             <div key={m.id} className="card p-4">
               <div className="flex items-start gap-3">
@@ -259,7 +316,7 @@ function MerchantsTab({ merchants, update }: { merchants: Merchant[]; update: (i
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {m.status !== 'approved' && (
-                  <button onClick={() => update(m.id, { status: 'approved' }, `${m.name} aprobado`)} className="btn-primary flex-1 px-3 py-2 text-xs">
+                  <button onClick={() => confirmApproval(m.name, missing) && update(m.id, { status: 'approved' }, `${m.name} aprobado`)} className="btn-primary flex-1 px-3 py-2 text-xs">
                     <Check size={14} /> {m.status === 'pending' ? 'Aprobar' : 'Reactivar'}
                   </button>
                 )}
@@ -268,6 +325,7 @@ function MerchantsTab({ merchants, update }: { merchants: Merchant[]; update: (i
                     <Ban size={14} /> Suspender
                   </button>
                 )}
+                {m.user_id && <LegalButton missing={missing} onClick={() => openLegal({ userId: m.user_id!, kind: 'merchant', title: m.name })} />}
                 <button onClick={() => setPlanFor(m)} className="btn-ghost px-3 py-2 text-xs">
                   <Crown size={14} /> Plan
                 </button>
@@ -350,7 +408,19 @@ function PlanSheet({ merchant, onClose, onSave }: { merchant: Merchant; onClose:
 }
 
 /* ---------------- Repartidores ---------------- */
-function DriversTab({ drivers, orders, update }: { drivers: Driver[]; orders: Order[]; update: (id: string, p: Partial<Driver>, msg: string) => Promise<void> }) {
+function DriversTab({
+  drivers,
+  orders,
+  update,
+  legal,
+  openLegal,
+}: {
+  drivers: Driver[];
+  orders: Order[];
+  update: (id: string, p: Partial<Driver>, msg: string) => Promise<void>;
+  legal: Record<string, LegalProfile>;
+  openLegal: OpenLegal;
+}) {
   const [filter, setFilter] = useState<ApprovalStatus | 'all'>(drivers.some((d) => d.status === 'pending') ? 'pending' : 'approved');
   const [q, setQ] = useState('');
   const delivered = useMemo(() => {
@@ -376,7 +446,9 @@ function DriversTab({ drivers, orders, update }: { drivers: Driver[]; orders: Or
       {list.length === 0 ? (
         <Empty icon={Bike} title="No hay repartidores aquí" />
       ) : (
-        list.map((d) => (
+        list.map((d) => {
+          const missing = legal[d.user_id] ? missingItems('delivery', legal[d.user_id], d.vehicle) : null;
+          return (
           <div key={d.id} className="card p-4">
             <div className="flex items-center gap-3">
               {d.photo_url ? (
@@ -401,7 +473,7 @@ function DriversTab({ drivers, orders, update }: { drivers: Driver[]; orders: Or
             </div>
             <div className="mt-3 flex gap-2">
               {d.status !== 'approved' ? (
-                <button onClick={() => update(d.id, { status: 'approved' }, `${d.full_name} aprobado`)} className="btn-primary flex-1 px-3 py-2 text-xs">
+                <button onClick={() => confirmApproval(d.full_name, missing) && update(d.id, { status: 'approved' }, `${d.full_name} aprobado`)} className="btn-primary flex-1 px-3 py-2 text-xs">
                   <Check size={14} /> {d.status === 'pending' ? 'Aprobar' : 'Reactivar'}
                 </button>
               ) : (
@@ -409,12 +481,14 @@ function DriversTab({ drivers, orders, update }: { drivers: Driver[]; orders: Or
                   <Ban size={14} /> Suspender
                 </button>
               )}
+              <LegalButton missing={missing} onClick={() => openLegal({ userId: d.user_id, kind: 'delivery', vehicle: d.vehicle, title: d.full_name })} />
               <a href={waLink(d.phone)} target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-2 text-xs">
-                <Phone size={14} /> WhatsApp
+                <Phone size={14} />
               </a>
             </div>
           </div>
-        ))
+          );
+        })
       )}
     </section>
   );

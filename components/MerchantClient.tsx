@@ -670,6 +670,17 @@ function OrderSheet({
             {!valid && mode === 'delivery' && !useDriver && (
               <p className="-mt-2 mb-4 text-center text-xs text-tinta-400">Escribe tu dirección para continuar</p>
             )}
+            <p className="-mt-1 mb-5 text-center text-[11px] leading-relaxed text-tinta-400">
+              Al enviar tu pedido aceptas los{' '}
+              <Link href="/terminos" target="_blank" className="font-semibold underline underline-offset-2">
+                Términos
+              </Link>{' '}
+              y la{' '}
+              <Link href="/privacidad" target="_blank" className="font-semibold underline underline-offset-2">
+                Política de Privacidad
+              </Link>
+              .
+            </p>
           </>
         )}
       </div>

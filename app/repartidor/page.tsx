@@ -1,5 +1,6 @@
 'use client';
 
+import { VerificationCard } from '@/components/Verification';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bike,
@@ -154,6 +155,10 @@ export default function RepartidorPage() {
       <div className="space-y-4 px-4 pt-4">
         <StatusBanner status={driver.status} kind="repartidor" />
 
+        {tab === 'pedidos' && (
+          <VerificationCard sb={sb} userId={session.user.id} kind="delivery" vehicle={driver.vehicle} approved={driver.status === 'approved'} prefill={{ legal_name: driver.full_name }} notify={notify} hideWhenComplete />
+        )}
+
         {approved && tab !== 'perfil' && (
           <button
             onClick={() => setOnline(!driver.is_online)}
@@ -270,6 +275,9 @@ export default function RepartidorPage() {
 
         {/* ---------- PERFIL ---------- */}
         {tab === 'perfil' && <DriverProfile sb={sb} userId={session.user.id} driver={driver} onSaved={(d) => { setDriver(d); notify('Perfil actualizado'); }} onError={(m) => notify(m, 'err')} />}
+        {tab === 'perfil' && (
+          <VerificationCard sb={sb} userId={session.user.id} kind="delivery" vehicle={driver.vehicle} approved={driver.status === 'approved'} prefill={{ legal_name: driver.full_name }} notify={notify} />
+        )}
       </div>
 
       <BottomNav
