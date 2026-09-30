@@ -8,6 +8,7 @@ import Landscape from './Landscape';
 import FlashDeals from './FlashDeals';
 import InstallPrompt from './InstallPrompt';
 import MerchantAvatar from './MerchantAvatar';
+import AccountMenu from './AccountMenu';
 import { ALL_CATEGORY, CATEGORY_STYLES, styleFor } from '@/lib/categories';
 import { CATEGORIES, type FlashDealFull, type Merchant } from '@/lib/types';
 import { cn, formatTime, isOpenNow } from '@/lib/utils';
@@ -80,13 +81,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
         <div className="pt-safe relative px-4 pt-4">
           <div className="flex items-center justify-between">
             <Logo light className="[&_p:first-child]:drop-shadow-sm" />
-            <Link
-              href="/entrar"
-              className="flex h-10 items-center gap-1.5 rounded-2xl bg-white/25 px-3 text-xs font-semibold text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-95"
-              aria-label="Entrar: comercios, repartidores y admin"
-            >
-              <Store size={16} /> Entrar
-            </Link>
+            <AccountMenu />
           </div>
 
           <div className="mt-6 animate-fade-up">

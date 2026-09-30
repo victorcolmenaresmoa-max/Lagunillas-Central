@@ -17,7 +17,7 @@ Se instala en el teléfono como una app (PWA), sin pasar por tiendas de aplicaci
 | **Repartidor** | `/repartidor` | Repartidores aprobados | Se pone disponible, recibe una notificación con sonido por cada pedido, lo acepta (el primero que acepta se lo queda), lo marca como recogido y entregado, y ve sus ganancias |
 | **Administración** | `/admin` | Tú | Aprueba o suspende comercios y repartidores, asigna planes, destaca comercios, ve todos los pedidos y ajusta el precio del delivery y de los planes |
 
-Todos entran por **`/entrar`**, y cada quien llega automáticamente a su panel. Los comercios y repartidores se registran en **`/registro`** y quedan **en revisión** hasta que tú los apruebas.
+Todos entran por **`/entrar`** (Iniciar sesión) y cada quien llega automáticamente a su panel. Si olvidan la contraseña, la recuperan en **`/entrar/recuperar`** con un código que llega al correo. Los comercios y repartidores se registran en **`/registro`** y quedan **en revisión** hasta que tú los apruebas.
 
 ---
 
@@ -75,11 +75,28 @@ En Supabase → **Authentication → URL Configuration**:
 
 Sin esto, los enlaces de "confirmar cuenta" y "cambiar contraseña" no funcionan.
 
-### Paso 4 · Correos de confirmación
+### Paso 4 · Correos (recuperar contraseña y confirmar cuenta)
 
-El correo gratuito de Supabase solo envía **unos pocos correos por hora**. Elige una opción:
-- **Para arrancar:** Authentication → Sign In / Providers → Email → desactiva **Confirm email**. Las cuentas quedan activas al instante. Igual nadie puede operar hasta que tú lo apruebes.
-- **Para crecer:** conecta un servicio de correo (Resend, Brevo…) en Authentication → Emails → SMTP Settings y deja **Confirm email** activado.
+El correo gratuito que trae Supabase **solo envía a los correos de tu equipo en Supabase y como máximo unos 2 por hora**. Por eso la recuperación de contraseña no le llega a la gente. Hay que conectar un correo propio. Gmail es gratis y alcanza para unos 500 correos al día:
+
+1. Crea un Gmail para la app, por ejemplo `lagunillascentral@gmail.com`.
+2. En esa cuenta, activa la **Verificación en 2 pasos**: myaccount.google.com → Seguridad.
+3. Entra a **myaccount.google.com/apppasswords**, crea una contraseña de aplicación llamada `Supabase` y copia las 16 letras.
+4. En Supabase → **Authentication → Emails → SMTP Settings**, activa **Enable Custom SMTP** y llena:
+   - Sender email: tu Gmail · Sender name: `Lagunillas Central`
+   - Host: `smtp.gmail.com` · Port: `587`
+   - Username: tu Gmail · Password: las 16 letras
+5. En **Authentication → Rate Limits**, sube **Rate limit for sending emails** a `100` por hora.
+6. En **Authentication → Emails → Templates** pega las plantillas de la carpeta `emails/` (abre el archivo en GitHub, pulsa copiar y pégalo en **Message body**):
+   - **Reset Password** → `emails/recuperar-clave.html` · Asunto: `Tu código para recuperar tu cuenta · Lagunillas Central`
+   - **Confirm signup** → `emails/confirmar-cuenta.html` · Asunto: `Confirma tu cuenta · Lagunillas Central`
+
+   Las plantillas traen un **código de 6 dígitos**, que funciona aunque la persona abra el correo en otro teléfono o con la app instalada, y además un botón de respaldo.
+7. En **Authentication → URL Configuration → Redirect URLs** agrega `https://TU-DIRECCION/**` (con los dos asteriscos al final).
+
+**¿Confirmar el correo al registrarse?** En Authentication → Sign In / Providers → Email → **Confirm email**:
+- **Activado** (recomendado cuando ya tengas el Gmail conectado): la persona escribe el código que le llega antes de entrar.
+- **Desactivado**: la cuenta queda activa al instante. Igual nadie opera hasta que tú lo apruebes.
 
 ### Paso 5 · Hacerte administrador
 
