@@ -78,7 +78,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
         <Landscape className="absolute inset-x-0 bottom-0 !h-[230px]" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
 
-        <div className="pt-safe relative px-4 pt-4">
+        <div className="pt-safe-top relative px-4">
           <div className="flex items-center justify-between">
             <Logo light className="[&_p:first-child]:drop-shadow-sm" />
             <AccountMenu />

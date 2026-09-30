@@ -64,7 +64,11 @@ function Login() {
     if (!sb) return setFormError('La app aún no está conectada a la base de datos.');
     setLoading(true);
     const clean = email.trim().toLowerCase();
-    const { data, error } = await sb.auth.signInWithPassword({ email: clean, password });
+    let { data, error } = await sb.auth.signInWithPassword({ email: clean, password });
+    // El teclado del teléfono a veces agrega un espacio al final sin que se note
+    if (error && /Invalid login credentials/i.test(error.message) && password !== password.trim()) {
+      ({ data, error } = await sb.auth.signInWithPassword({ email: clean, password: password.trim() }));
+    }
     if (error) {
       setLoading(false);
       if (/Email not confirmed/i.test(error.message)) {
@@ -81,7 +85,7 @@ function Login() {
     try {
       localStorage.setItem('lc-ultimo-correo', clean);
     } catch {}
-    await go(data.user.id);
+    await go(data.user!.id);
   };
 
   if (unconfirmed) {

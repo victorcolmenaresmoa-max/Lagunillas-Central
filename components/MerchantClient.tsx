@@ -142,7 +142,7 @@ export default function MerchantClient({
           <Landscape tint={sky} className="absolute inset-0" />
         )}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-cal-100" />
-        <div className="pt-safe absolute inset-x-0 top-0 flex items-center justify-between p-4">
+        <div className="pt-safe-top absolute inset-x-0 top-0 flex items-center justify-between px-4 pb-4">
           <Link href="/" aria-label="Volver" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/30 text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-90">
             <ArrowLeft size={20} />
           </Link>

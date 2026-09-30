@@ -42,6 +42,10 @@ body {
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+  /* Encabezados sobre el paisaje: aire arriba + espacio de la cámara del iPhone */
+  .pt-safe-top {
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+  }
   .text-balance {
     text-wrap: balance;
   }

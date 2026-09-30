@@ -36,7 +36,7 @@ export function AuthShell({
       <div className="relative h-[190px] overflow-hidden bg-[#5b9fd8]">
         <Landscape className="absolute inset-x-0 bottom-0 !h-[170px]" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
-        <div className="pt-safe relative flex items-center justify-between px-5 pt-4">
+        <div className="pt-safe-top relative flex items-center justify-between px-5">
           {onBack ? (
             <button onClick={onBack} className={backCls} aria-label="Volver">
               <ArrowLeft size={20} />
@@ -182,6 +182,11 @@ export const PasswordField = forwardRef<HTMLInputElement, InputProps & { showRul
           value={value}
           className={cn('pr-12', className)}
           onKeyUp={(e) => setCaps(e.getModifierState?.('CapsLock') ?? false)}
+          // Al tocar el ojito el campo pasa a texto normal: sin esto el teclado del
+          // teléfono pone la primera letra en mayúscula o "corrige" la contraseña.
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           {...rest}
         />
         <button
@@ -199,6 +204,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputProps & { showRul
           {[
             ['Mínimo 8 caracteres', v.length >= 8],
             ['Letras y números', /[a-zA-Z]/.test(v) && /\d/.test(v)],
+            ...(v !== v.trim() ? ([['Sin espacios al inicio ni al final', false]] as const) : []),
           ].map(([label, ok]) => (
             <li key={label as string} className={cn('flex items-center gap-1 font-medium transition', ok ? 'text-laguna-600' : 'text-tinta-400')}>
               <span className={cn('flex h-4 w-4 items-center justify-center rounded-full', ok ? 'bg-laguna-500 text-white' : 'bg-cal-300')}>
@@ -213,7 +219,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputProps & { showRul
   );
 });
 
-export const passwordOk = (v: string) => v.length >= 8 && /[a-zA-Z]/.test(v) && /\d/.test(v);
+export const passwordOk = (v: string) => v === v.trim() && v.length >= 8 && /[a-zA-Z]/.test(v) && /\d/.test(v);
 
 /* ================================================================
    Código de verificación (6–8 dígitos)

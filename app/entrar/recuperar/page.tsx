@@ -70,7 +70,7 @@ function Recuperar() {
   const savePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!passwordOk(password)) return setError('Usa al menos 8 caracteres, con letras y números.');
+    if (!passwordOk(password)) return setError('Usa al menos 8 caracteres, con letras y números, sin espacios al inicio ni al final.');
     const sb = getBrowserClient()!;
     setBusy(true);
     const { error } = await sb.auth.updateUser({ password });

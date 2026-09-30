@@ -94,7 +94,7 @@ function Registro() {
       if (!isValidPhone(phone)) errs.phone = 'Escribe un teléfono válido.';
     }
     if (!isEmail(email)) errs.email = 'Escribe un correo válido. Lo usarás para entrar.';
-    if (!passwordOk(password)) errs.password = 'Usa al menos 8 caracteres, con letras y números.';
+    if (!passwordOk(password)) errs.password = 'Usa al menos 8 caracteres, con letras y números, sin espacios al inicio ni al final.';
     if (!accept) errs.accept = 'Marca la casilla para continuar.';
     setErrors(errs);
     if (Object.keys(errs).length) return;

@@ -89,7 +89,7 @@ export default function TrackingPage({ params }: { params: { token: string } }) 
       <header className="relative h-[210px] overflow-hidden bg-[#5b9fd8]">
         <Landscape variant={delivered ? 'ocaso' : 'dia'} className="absolute inset-x-0 bottom-0 !h-[190px]" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
-        <div className="pt-safe relative px-4 pt-4">
+        <div className="pt-safe-top relative px-4">
           <Link href="/" className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/30 text-white ring-1 ring-white/40 backdrop-blur-md" aria-label="Inicio">
             <ArrowLeft size={20} />
           </Link>
