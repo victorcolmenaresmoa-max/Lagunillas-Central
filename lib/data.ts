@@ -1,35 +1,40 @@
 /**
- * Lectura de datos públicos.
- * Si Supabase está configurado lee de la base de datos; si no, usa los datos de demostración.
+ * Lectura de datos públicos (lo que ve cualquier visitante).
+ * La base de datos solo devuelve comercios aprobados y activos.
  */
 import { getPublicClient } from './supabase';
-import { DEMO_MERCHANTS, DEMO_PRODUCTS, demoFlashDeals } from './demo-data';
-import type { FlashDealFull, Merchant, Product } from './types';
+import { effectivePlan } from './plans';
+import type { AppSettings, FlashDealFull, Merchant, Product } from './types';
+
+const DEFAULT_SETTINGS: AppSettings = {
+  id: 1,
+  delivery_fee: 1.5,
+  admin_whatsapp: null,
+  price_pro: 10,
+  price_premium: 25,
+  updated_at: new Date(0).toISOString(),
+};
+
+const rank = (m: Merchant) => {
+  const plan = effectivePlan(m);
+  return (plan === 'premium' ? 4 : 0) + (m.is_featured ? 2 : 0) + (plan === 'pro' ? 1 : 0);
+};
 
 export async function getMerchants(): Promise<Merchant[]> {
   const sb = getPublicClient();
-  if (!sb) return DEMO_MERCHANTS;
-  const { data, error } = await sb
-    .from('merchants')
-    .select('*')
-    .eq('is_active', true)
-    .order('is_featured', { ascending: false })
-    .order('name');
+  if (!sb) return [];
+  const { data, error } = await sb.from('merchants').select('*').eq('status', 'approved').eq('is_active', true).order('name');
   if (error) {
     console.error('[getMerchants]', error.message);
     return [];
   }
-  return data as Merchant[];
+  return (data as Merchant[]).sort((a, b) => rank(b) - rank(a));
 }
 
 export async function getMerchantBySlug(slug: string): Promise<{ merchant: Merchant; products: Product[] } | null> {
   const sb = getPublicClient();
-  if (!sb) {
-    const merchant = DEMO_MERCHANTS.find((m) => m.slug === slug);
-    if (!merchant) return null;
-    return { merchant, products: DEMO_PRODUCTS.filter((p) => p.merchant_id === merchant.id) };
-  }
-  const { data: merchant } = await sb.from('merchants').select('*').eq('slug', slug).maybeSingle();
+  if (!sb) return null;
+  const { data: merchant } = await sb.from('merchants').select('*').eq('slug', slug).eq('status', 'approved').maybeSingle();
   if (!merchant) return null;
   const { data: products } = await sb
     .from('products')
@@ -42,10 +47,7 @@ export async function getMerchantBySlug(slug: string): Promise<{ merchant: Merch
 
 export async function getActiveFlashDeals(merchantId?: string): Promise<FlashDealFull[]> {
   const sb = getPublicClient();
-  if (!sb) {
-    const deals = demoFlashDeals();
-    return merchantId ? deals.filter((d) => d.merchant_id === merchantId) : deals;
-  }
+  if (!sb) return [];
   let q = sb
     .from('flash_deals')
     .select('*, product:products(id,title,price,image_url), merchant:merchants(id,name,slug,category)')
@@ -59,4 +61,11 @@ export async function getActiveFlashDeals(merchantId?: string): Promise<FlashDea
     return [];
   }
   return (data ?? []).filter((d: any) => d.product && d.merchant) as FlashDealFull[];
+}
+
+export async function getSettings(): Promise<AppSettings> {
+  const sb = getPublicClient();
+  if (!sb) return DEFAULT_SETTINGS;
+  const { data } = await sb.from('app_settings').select('*').eq('id', 1).maybeSingle();
+  return (data as AppSettings) ?? DEFAULT_SETTINGS;
 }

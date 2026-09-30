@@ -12,7 +12,11 @@ let publicClient: SupabaseClient | null = null;
 export function getPublicClient(): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
   if (!publicClient) {
-    publicClient = createClient(url!, anonKey!, { auth: { persistSession: false } });
+    publicClient = createClient(url!, anonKey!, {
+      auth: { persistSession: false },
+      // Sin caché: comercios, ofertas y horarios siempre al día
+      global: { fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }) },
+    });
   }
   return publicClient;
 }

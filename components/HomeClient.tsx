@@ -28,7 +28,16 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('Todos');
   const [hello, setHello] = useState('Hola');
-  useEffect(() => setHello(greeting()), []);
+  const [activeOrder, setActiveOrder] = useState<{ token: string; code: string; merchant: string } | null>(null);
+  useEffect(() => {
+    setHello(greeting());
+    // Pedido reciente con delivery (guardado en este teléfono)
+    try {
+      const list = JSON.parse(localStorage.getItem('lc-pedidos') || '[]');
+      const recent = list.find((o: any) => Date.now() - o.at < 3 * 3600 * 1000);
+      if (recent) setActiveOrder(recent);
+    } catch {}
+  }, []);
 
   const q = normalize(query.trim());
 
@@ -72,11 +81,11 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
           <div className="flex items-center justify-between">
             <Logo light className="[&_p:first-child]:drop-shadow-sm" />
             <Link
-              href="/admin/login"
+              href="/entrar"
               className="flex h-10 items-center gap-1.5 rounded-2xl bg-white/25 px-3 text-xs font-semibold text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-95"
-              aria-label="Acceso para comercios"
+              aria-label="Entrar: comercios, repartidores y admin"
             >
-              <Store size={16} /> Comercios
+              <Store size={16} /> Entrar
             </Link>
           </div>
 
@@ -149,6 +158,16 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
       </div>
 
       <div className="space-y-8 pt-4">
+        {activeOrder && (
+          <Link href={`/pedido/${activeOrder.token}`} className="mx-4 flex animate-fade-up items-center gap-3 rounded-3xl bg-laguna-600 p-3.5 text-white shadow-jade active:scale-[0.98]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-2xl">🛵</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold text-white/75">Tu pedido {activeOrder.code}</span>
+              <span className="block truncate font-bold">{activeOrder.merchant} · ver seguimiento</span>
+            </span>
+            <ChevronRight size={20} />
+          </Link>
+        )}
         <FlashDeals deals={filteredDeals} />
 
         {/* ---------- DIRECTORIO ---------- */}
@@ -161,7 +180,16 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
             </span>
           </div>
 
-          {filteredMerchants.length === 0 ? (
+          {merchants.length === 0 ? (
+            <div className="card flex flex-col items-center px-6 py-10 text-center">
+              <Store size={36} className="text-laguna-500" />
+              <p className="heading mt-3 text-xl">Muy pronto, los comercios del pueblo</p>
+              <p className="mt-1 text-sm text-tinta-500">Estamos sumando a los negocios de Lagunillas. ¿Tienes uno?</p>
+              <Link href="/registro?tipo=comercio" className="btn-primary mt-4 text-sm">
+                Registra tu comercio
+              </Link>
+            </div>
+          ) : filteredMerchants.length === 0 ? (
             <div className="card flex flex-col items-center px-6 py-10 text-center">
               <SearchX size={36} className="text-tinta-400" />
               <p className="mt-3 font-semibold text-tinta-900">No encontramos resultados</p>
@@ -194,7 +222,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
           <div className="relative px-5 py-6 text-center">
             <p className="heading text-xl text-white">¿Tienes un negocio en Lagunillas?</p>
             <p className="mt-1 text-sm text-white/85">Que todo el pueblo te encuentre y te pida por WhatsApp.</p>
-            <Link href="/admin/login" className="mt-4 inline-flex items-center gap-1.5 rounded-2xl bg-cal-50 px-4 py-2.5 text-sm font-bold text-ocaso-600 shadow-lift active:scale-95">
+            <Link href="/registro" className="mt-4 inline-flex items-center gap-1.5 rounded-2xl bg-cal-50 px-4 py-2.5 text-sm font-bold text-ocaso-600 shadow-lift active:scale-95">
               Súmate aquí <ChevronRight size={16} />
             </Link>
           </div>

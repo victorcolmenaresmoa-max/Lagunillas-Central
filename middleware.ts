@@ -2,30 +2,31 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 /**
- * Protege el panel: si no hay sesión, redirige a /admin/login.
- * Si Supabase aún no está configurado, deja pasar (modo demostración).
+ * Mantiene la sesión al día y protege los paneles:
+ * sin sesión, /panel, /repartidor y /admin mandan a /entrar.
+ * (El rol se verifica en cada panel y, sobre todo, en la base de datos.)
  */
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key || url.includes('TU-PROYECTO')) return res;
+  if (!url || !key) return res;
 
   const supabase = createMiddlewareClient({ req, res });
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const isLogin = req.nextUrl.pathname.startsWith('/admin/login');
-  if (!session && !isLogin) {
-    return NextResponse.redirect(new URL('/admin/login', req.url));
-  }
-  if (session && isLogin) {
-    return NextResponse.redirect(new URL('/admin/dashboard', req.url));
+  const path = req.nextUrl.pathname;
+  const isPrivate = ['/panel', '/repartidor', '/admin'].some((p) => path === p || path.startsWith(p + '/'));
+  if (!session && isPrivate) {
+    const to = new URL('/entrar', req.url);
+    to.searchParams.set('next', path);
+    return NextResponse.redirect(to);
   }
   return res;
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/panel/:path*', '/repartidor/:path*', '/admin/:path*', '/entrar', '/registro'],
 };

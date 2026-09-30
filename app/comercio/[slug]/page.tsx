@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import MerchantClient from '@/components/MerchantClient';
-import { getActiveFlashDeals, getMerchantBySlug } from '@/lib/data';
+import { getActiveFlashDeals, getMerchantBySlug, getSettings } from '@/lib/data';
+import { PLANS, effectivePlan } from '@/lib/plans';
 
-export const revalidate = 30;
+// Siempre datos frescos: comercios recién aprobados, ofertas y horarios al instante
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const res = await getMerchantBySlug(params.slug);
@@ -11,12 +13,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: res.merchant.name,
     description: res.merchant.description ?? `${res.merchant.category} en Lagunillas, Mérida`,
+    openGraph: res.merchant.logo_url ? { images: [res.merchant.logo_url] } : undefined,
   };
 }
 
 export default async function MerchantPage({ params }: { params: { slug: string } }) {
   const res = await getMerchantBySlug(params.slug);
   if (!res) notFound();
-  const deals = await getActiveFlashDeals(res.merchant.id);
-  return <MerchantClient merchant={res.merchant} products={res.products} deals={deals} />;
+  const [deals, settings] = await Promise.all([getActiveFlashDeals(res.merchant.id), getSettings()]);
+  const plan = PLANS[effectivePlan(res.merchant)];
+  // La portada solo se muestra si el plan vigente la incluye
+  const merchant = plan.cover ? res.merchant : { ...res.merchant, cover_url: null };
+  return <MerchantClient merchant={merchant} products={res.products} deals={deals} deliveryFee={Number(settings.delivery_fee)} />;
 }

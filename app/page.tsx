@@ -1,8 +1,8 @@
 import HomeClient from '@/components/HomeClient';
 import { getActiveFlashDeals, getMerchants } from '@/lib/data';
 
-// Se actualiza cada 30 segundos para mostrar nuevos comercios y ofertas
-export const revalidate = 30;
+// Siempre datos frescos: comercios recién aprobados, ofertas y horarios al instante
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const [merchants, deals] = await Promise.all([getMerchants(), getActiveFlashDeals()]);
