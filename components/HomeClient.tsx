@@ -73,10 +73,12 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
   return (
     <main className="mx-auto min-h-dvh max-w-md pb-40">
       {/* ---------- PORTADA: el pueblo entre cerros y laguna ---------- */}
-      <header className="relative h-[330px] overflow-hidden bg-[#5b9fd8]">
-        {/* el paisaje ocupa la parte baja; arriba queda cielo limpio para el texto */}
-        <Landscape className="absolute inset-0" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
+      <header className="relative h-[330px] overflow-hidden bg-[#6f9fd0]">
+        {/* foto del pueblo; velos arriba y a la izquierda para que el texto siempre se lea */}
+        <Landscape variant="dia" priority position="center 42%" className="absolute inset-0" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#10263a]/55 via-[#10263a]/20 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#10263a]/50 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent via-cal-100/60 to-cal-100" />
 
         <div className="pt-safe-top relative px-4">
           <div className="flex items-center justify-between">
@@ -212,7 +214,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
 
         {/* ---------- PIE ---------- */}
         <footer className="relative mx-4 overflow-hidden rounded-[28px]">
-          <Landscape variant="ocaso" className="absolute inset-0" />
+          <Landscape variant="ocaso" position="center 50%" className="absolute inset-0" />
           <div className="absolute inset-0 bg-ocaso-800/55" />
           <div className="relative px-5 py-6 text-center">
             <p className="heading text-xl text-white">¿Tienes un negocio en Lagunillas?</p>

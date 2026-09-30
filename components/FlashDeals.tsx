@@ -38,9 +38,9 @@ function FeaturedDeal({ deal }: { deal: FlashDealFull }) {
       href={`/comercio/${deal.merchant.slug}`}
       className="group relative block overflow-hidden rounded-[30px] shadow-ocaso transition active:scale-[0.98]"
     >
-      <Landscape variant="ocaso" className="absolute inset-0" />
+      <Landscape variant="ocaso" position="center 45%" className="absolute inset-0" />
       {/* velo para que el texto se lea bien */}
-      <div className="absolute inset-0 bg-gradient-to-r from-ocaso-800/85 via-ocaso-800/45 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ocaso-800/85 via-ocaso-800/60 to-ocaso-800/10" />
 
       <div className="relative p-5">
         <div className="flex items-center justify-between">

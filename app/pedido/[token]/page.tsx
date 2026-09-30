@@ -86,9 +86,10 @@ export default function TrackingPage({ params }: { params: { token: string } }) 
 
   return (
     <main className="mx-auto min-h-dvh max-w-md pb-16">
-      <header className="relative h-[210px] overflow-hidden bg-[#5b9fd8]">
-        <Landscape variant={delivered ? 'ocaso' : 'dia'} className="absolute inset-0" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
+      <header className="relative h-[210px] overflow-hidden bg-[#79a9c6]">
+        <Landscape variant={delivered ? 'ocaso' : 'laguna'} priority position="center 40%" className="absolute inset-0" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#10263a]/45 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent via-cal-100/60 to-cal-100" />
         <div className="pt-safe-top relative px-4">
           <Link href="/" className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/30 text-white ring-1 ring-white/40 backdrop-blur-md" aria-label="Inicio">
             <ArrowLeft size={20} />

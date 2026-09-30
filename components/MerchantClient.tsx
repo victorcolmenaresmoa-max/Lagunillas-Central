@@ -21,7 +21,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import MerchantAvatar from './MerchantAvatar';
-import Landscape from './Landscape';
+import Landscape, { paisajePara } from './Landscape';
 import { styleFor } from '@/lib/categories';
 import type { FlashDealFull, Merchant, Product } from '@/lib/types';
 import { useCountdown, pad2 } from '@/lib/useCountdown';
@@ -79,7 +79,7 @@ export default function MerchantClient({
   const [copied, setCopied] = useState(false);
 
   const open = isOpenNow(m);
-  const { gradient, chip, sky } = styleFor(m.category);
+  const { gradient, chip } = styleFor(m.category);
 
   // Precio con descuento si el producto tiene oferta flash vigente
   const dealPrice = useMemo(() => {
@@ -139,8 +139,9 @@ export default function MerchantClient({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={m.cover_url} alt="" className="h-full w-full object-cover" />
         ) : (
-          <Landscape tint={sky} className="absolute inset-0" />
+          <Landscape variant={paisajePara(m.slug || m.name)} priority position="center 42%" className="absolute inset-0" />
         )}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#10263a]/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-cal-100" />
         <div className="pt-safe-top absolute inset-x-0 top-0 flex items-center justify-between px-4 pb-4">
           <Link href="/" aria-label="Volver" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/30 text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-90">
