@@ -34,7 +34,7 @@ export function AuthShell({
   return (
     <main className="relative mx-auto flex min-h-dvh max-w-md flex-col pb-10">
       <div className="relative h-[190px] overflow-hidden bg-[#5b9fd8]">
-        <Landscape className="absolute inset-x-0 bottom-0 !h-[170px]" />
+        <Landscape className="absolute inset-0" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
         <div className="pt-safe-top relative flex items-center justify-between px-5">
           {onBack ? (
@@ -222,15 +222,22 @@ export const PasswordField = forwardRef<HTMLInputElement, InputProps & { showRul
 export const passwordOk = (v: string) => v === v.trim() && v.length >= 8 && /[a-zA-Z]/.test(v) && /\d/.test(v);
 
 /* ================================================================
-   Código de verificación (6–8 dígitos)
+   Código de verificación
+   Debe coincidir con Supabase → Authentication → Sign In / Providers →
+   Email → "Email OTP Length" (hoy 8). Si allá lo cambias, cambia
+   NEXT_PUBLIC_OTP_LENGTH en Vercel con el mismo número.
    ================================================================ */
+export const OTP_LENGTH = Math.min(10, Math.max(6, Number(process.env.NEXT_PUBLIC_OTP_LENGTH) || 8));
+/** El código que llega por correo vence a la hora (ajuste de Supabase) */
+export const OTP_VALID_TEXT = '1 hora';
+
 export function CodeInput({
   value,
   onChange,
   onComplete,
   error,
   disabled,
-  length = 6,
+  length = OTP_LENGTH,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -255,21 +262,22 @@ export function CodeInput({
           inputMode="numeric"
           autoComplete="one-time-code"
           pattern="[0-9]*"
-          maxLength={8}
+          maxLength={length}
           onChange={(e) => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 8);
+            const v = e.target.value.replace(/\D/g, '').slice(0, length);
             onChange(v);
             if (v.length >= length) onComplete?.(v);
           }}
           className="absolute inset-0 h-full w-full opacity-0"
           aria-invalid={Boolean(error)}
         />
-        <div className="flex justify-between gap-2" aria-hidden>
+        <div className={cn('flex justify-between', length > 6 ? 'gap-1.5' : 'gap-2')} aria-hidden>
           {boxes.map((d, i) => (
             <span
               key={i}
               className={cn(
-                'flex h-14 flex-1 items-center justify-center rounded-2xl border-2 bg-white text-2xl font-extrabold tabular-nums text-tinta-900 transition',
+                'flex flex-1 items-center justify-center border-2 bg-white font-extrabold tabular-nums text-tinta-900 transition',
+                length > 6 ? 'h-12 rounded-xl text-xl' : 'h-14 rounded-2xl text-2xl',
                 error ? 'border-teja-400' : i === value.length && !disabled ? 'border-laguna-500 ring-4 ring-laguna-400/15' : d ? 'border-laguna-300' : 'border-cal-300'
               )}
             >
@@ -311,7 +319,7 @@ export function ResendButton({ onResend, seconds = 60 }: { onResend: () => Promi
       }}
       className="text-sm font-bold text-laguna-600 disabled:font-medium disabled:text-tinta-400"
     >
-      {busy ? 'Enviando…' : left > 0 ? `Reenviar código en ${left} s` : 'Reenviar código'}
+      {busy ? 'Enviando…' : left > 0 ? `¿No te llegó? Podrás pedir otro en ${left} s` : '¿No te llegó? Enviarme otro código'}
     </button>
   );
 }

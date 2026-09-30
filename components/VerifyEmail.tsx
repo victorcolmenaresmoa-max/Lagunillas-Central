@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { Loader2, MailCheck } from 'lucide-react';
-import { CodeInput, FormAlert, ResendButton } from './auth';
+import { CodeInput, FormAlert, OTP_LENGTH, OTP_VALID_TEXT, ResendButton } from './auth';
 import { getBrowserClient } from '@/lib/supabase-browser';
 import { friendlyError } from '@/lib/errors';
 
 /**
- * Confirmar el correo con el código de 6 dígitos (cuando Supabase exige confirmación).
+ * Confirmar el correo con el código (cuando Supabase exige confirmación).
  * Se usa al crear cuenta y al intentar entrar con una cuenta sin confirmar.
  */
 export default function VerifyEmail({ email, onVerified, onChangeEmail }: { email: string; onVerified: (userId: string) => void; onChangeEmail?: () => void }) {
@@ -37,13 +37,13 @@ export default function VerifyEmail({ email, onVerified, onChangeEmail }: { emai
           <MailCheck size={24} />
         </span>
         <p className="text-sm text-tinta-600">
-          Te enviamos un <b>código de 6 dígitos</b> a <b className="break-all text-tinta-900">{email}</b>. Escríbelo aquí para activar tu cuenta.
+          Te enviamos un <b>código de {OTP_LENGTH} dígitos</b> a <b className="break-all text-tinta-900">{email}</b>. Escríbelo aquí para activar tu cuenta. Vale por {OTP_VALID_TEXT}.
         </p>
       </div>
 
       <CodeInput value={code} onChange={setCode} onComplete={verify} error={error} disabled={busy} />
 
-      <button onClick={() => verify(code)} disabled={busy || code.length < 6} className="btn-primary w-full py-3.5 text-base">
+      <button onClick={() => verify(code)} disabled={busy || code.length < OTP_LENGTH} className="btn-primary w-full py-3.5 text-base">
         {busy ? <Loader2 size={20} className="animate-spin" /> : 'Confirmar mi cuenta'}
       </button>
 
@@ -58,7 +58,7 @@ export default function VerifyEmail({ email, onVerified, onChangeEmail }: { emai
             else setInfo('Listo, te enviamos un código nuevo.');
           }}
         />
-        <p className="text-xs text-tinta-400">¿No llega? Revisa la carpeta de spam o promociones.</p>
+        <p className="text-xs text-tinta-400">Revisa también spam o promociones. Si pides otro, usa siempre el más reciente.</p>
         {onChangeEmail && (
           <button type="button" onClick={onChangeEmail} className="text-xs font-semibold text-tinta-500 underline underline-offset-2">
             Me equivoqué de correo

@@ -91,7 +91,7 @@ El correo gratuito que trae Supabase **solo envía a los correos de tu equipo en
    - **Reset Password** → `emails/recuperar-clave.html` · Asunto: `Tu código para recuperar tu cuenta · Lagunillas Central`
    - **Confirm signup** → `emails/confirmar-cuenta.html` · Asunto: `Confirma tu cuenta · Lagunillas Central`
 
-   Las plantillas traen un **código de 6 dígitos**, que funciona aunque la persona abra el correo en otro teléfono o con la app instalada, y además un botón de respaldo.
+   Las plantillas traen un **código numérico** (la app espera 8 dígitos; si en Supabase cambias "Email OTP Length", pon el mismo número en la variable `NEXT_PUBLIC_OTP_LENGTH` de Vercel), que funciona aunque la persona abra el correo en otro teléfono o con la app instalada, y además un botón de respaldo.
 7. En **Authentication → URL Configuration → Redirect URLs** agrega `https://TU-DIRECCION/**` (con los dos asteriscos al final).
 
 **¿Confirmar el correo al registrarse?** En Authentication → Sign In / Providers → Email → **Confirm email**:

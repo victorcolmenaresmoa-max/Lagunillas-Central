@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
-import { AuthShell, CodeInput, FormAlert, PasswordField, ResendButton, TextField, emailSuggestion, isEmail, passwordOk } from '@/components/auth';
+import { AuthShell, CodeInput, OTP_LENGTH, OTP_VALID_TEXT, FormAlert, PasswordField, ResendButton, TextField, emailSuggestion, isEmail, passwordOk } from '@/components/auth';
 import { getBrowserClient } from '@/lib/supabase-browser';
 import { homeForRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
@@ -116,7 +116,7 @@ function Recuperar() {
           : step === 'codigo'
             ? (
                 <>
-                  Enviamos un código de 6 dígitos a <b className="break-all text-tinta-900">{clean}</b>.
+                  Enviamos un código de {OTP_LENGTH} dígitos a <b className="break-all text-tinta-900">{clean}</b>. Vale por {OTP_VALID_TEXT}.
                 </>
               )
             : 'Elige una contraseña que recuerdes. La usarás para entrar de ahora en adelante.'
@@ -163,7 +163,7 @@ function Recuperar() {
       {step === 'codigo' && (
         <div className="card space-y-5 rounded-[28px] p-5">
           <CodeInput value={code} onChange={setCode} onComplete={verify} error={error} disabled={busy} />
-          <button onClick={() => verify(code)} disabled={busy || code.length < 6} className="btn-primary w-full py-3.5 text-base">
+          <button onClick={() => verify(code)} disabled={busy || code.length < OTP_LENGTH} className="btn-primary w-full py-3.5 text-base">
             {busy ? <Loader2 size={20} className="animate-spin" /> : 'Continuar'}
           </button>
           {info && <FormAlert kind="ok">{info}</FormAlert>}
@@ -179,7 +179,7 @@ function Recuperar() {
                 }
               }}
             />
-            <p className="text-xs text-tinta-400">¿No llega? Revisa spam o promociones. También puedes tocar el botón del correo.</p>
+            <p className="text-xs text-tinta-400">Revisa también spam o promociones. Si pides otro, usa siempre el más reciente.</p>
           </div>
         </div>
       )}

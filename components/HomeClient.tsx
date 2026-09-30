@@ -75,7 +75,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
       {/* ---------- PORTADA: el pueblo entre cerros y laguna ---------- */}
       <header className="relative h-[330px] overflow-hidden bg-[#5b9fd8]">
         {/* el paisaje ocupa la parte baja; arriba queda cielo limpio para el texto */}
-        <Landscape className="absolute inset-x-0 bottom-0 !h-[230px]" />
+        <Landscape className="absolute inset-0" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cal-100" />
 
         <div className="pt-safe-top relative px-4">
