@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CENTER, DEFAULT_CONFIG, covered, isPoint, type Point } from "@/lib/geo";
 import { tomtomTileUrl, TOMTOM_ATTRIBUTION } from "@/lib/tomtom-maps";
-import { deviceLocation } from "@/lib/device-location";
+import { deviceLocation, locationPermission } from "@/lib/device-location";
 import type * as Leaflet from "leaflet";
 
 type MapMarker = { point: Point; label: string };
@@ -114,18 +114,33 @@ export function PointPicker({ point, onChange, coverage }: {
 }) {
   const [error, setError] = useState("");
   const [locating, setLocating] = useState(false);
+  const [permission, setPermission] = useState<PermissionState | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const mounted = useRef(true);
   const request = useRef(0);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current++; }; }, []);
+  useEffect(() => {
+    let gone = false;
+    let status: PermissionStatus | null = null;
+    const update = () => { if (!gone && status) setPermission(status.state); };
+    locationPermission().then(result => {
+      if (gone || !result) return;
+      status = result;
+      update();
+      status.addEventListener('change', update);
+    });
+    return () => { gone = true; status?.removeEventListener('change', update); };
+  }, []);
   const move = (p: Point) => { request.current++; setLocating(false); setAccuracy(null); setError(''); onChange(p); };
   const locate = () => {
     setError('');
     const current = ++request.current;
     setLocating(true);
+    // Keep the native request directly inside the click, including on Safari.
     deviceLocation().then(position => {
       if (!mounted.current || request.current !== current) return;
       setLocating(false);
+      setPermission('granted');
       setAccuracy(position.accuracy);
       onChange(position.point);
     }).catch(e => {
@@ -137,6 +152,12 @@ export function PointPicker({ point, onChange, coverage }: {
   return <div className="space-y-3">
     <p className="text-sm">Activa tu ubicación para marcar dónde estás. Úsala cuando estés en el lugar de entrega; también puedes elegir otra dirección en el mapa.</p>
     <button type="button" className="btn-primary w-full" onClick={locate} disabled={locating}>{locating ? 'Buscando tu ubicación…' : 'Usar mi ubicación'}</button>
+    <p role="status" className="text-sm text-tinta-500">{permission === 'granted' ? 'Ya permitiste la ubicación en este navegador. No necesita pedir permiso otra vez.' : permission === 'denied' ? 'El acceso a la ubicación está bloqueado. Revisa los permisos del sitio y los ajustes de ubicación del dispositivo.' : 'Al pulsar el botón, el navegador te pedirá permiso si aún no has permitido o bloqueado la ubicación.'}</p>
+    <details className="rounded-xl bg-cal-100 p-3 text-sm">
+      <summary className="cursor-pointer">¿No aparece el aviso de permiso?</summary>
+      <p className="mt-2">El navegador recuerda tu decisión. Abre el menú junto a la dirección de esta página, busca los permisos o ajustes del sitio y cambia Ubicación a Permitir o Preguntar. Después vuelve a pulsar «Usar mi ubicación».</p>
+      <p className="mt-2">Comprueba también que la ubicación del dispositivo esté activada y que tu navegador tenga permiso para usarla. Si abriste el enlace dentro de otra app, ábrelo directamente en Safari o Chrome.</p>
+    </details>
     {accuracy !== null && <p role="status" className="text-sm">Precisión aproximada del dispositivo: {Math.ceil(accuracy)} metros. {accuracy > 50 ? 'La señal es poco precisa; ajusta el pin a la entrada de tu casa.' : 'Confirma que el pin coincide con la entrada.'}</p>}
     {error && <p role="alert" className="text-sm text-teja-600">{error}</p>}
     <DeliveryMap point={point} onChange={move} coverage={coverage} accuracy={accuracy} />

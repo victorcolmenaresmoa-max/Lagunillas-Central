@@ -1,3 +1,14 @@
+// Reading permission never requests coordinates or opens the browser prompt.
+// Some browsers do not support querying geolocation; the GPS button still works.
+export async function locationPermission(): Promise<PermissionStatus | null> {
+  try {
+    if (!navigator.permissions?.query) return null;
+    return await navigator.permissions.query({ name: 'geolocation' });
+  } catch {
+    return null;
+  }
+}
+
 export function deviceLocation(): Promise<{ point: { lat: number; lng: number }; accuracy: number }> {
   if (!window.isSecureContext) return Promise.reject(new Error('Abre la app con HTTPS para activar tu ubicación.'));
   if (!navigator.geolocation) return Promise.reject(new Error('Este dispositivo no permite ubicación. Puedes fijar el pin en el mapa.'));

@@ -23,6 +23,17 @@ function locator(handler, secure = true, supported = true) {
 await assert.rejects(locator(() => assert.fail('Must not request on HTTP'), false)(), /HTTPS/);
 await assert.rejects(locator(() => assert.fail('Unavailable GPS'), true, false)(), /dispositivo/);
 assert.equal(requested, 0);
+for (const state of ['prompt', 'granted', 'denied']) {
+  const status = { state };
+  const { locationPermission } = load('lib/device-location.ts', { navigator: {
+    permissions: { query: async descriptor => { assert.equal(descriptor.name, 'geolocation'); return status; } },
+    geolocation: { getCurrentPosition: () => assert.fail('Reading permission must not request location') },
+  } });
+  assert.equal(await locationPermission(), status);
+}
+for (const navigator of [{}, { permissions: { query: async () => { throw new Error('Unsupported permission'); } } }]) {
+  assert.equal(await load('lib/device-location.ts', { navigator }).locationPermission(), null);
+}
 const position = await locator(ok => ok({ coords: { latitude: 8.4978615, longitude: -71.3896149, accuracy: 12 } }))();
 assert.equal(position.point.lat, 8.4978615); assert.equal(position.point.lng, -71.3896149); assert.equal(position.accuracy, 12);
 for (const [code, text] of [[1, /Permite/], [2, /señal/], [3, /demasiado/]]) await assert.rejects(locator((ok, fail) => fail({ code }))(), text);
