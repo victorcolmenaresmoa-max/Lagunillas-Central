@@ -393,6 +393,7 @@ export default function OrderProfile({
             </p>
           )}
           <DeliveryMap
+            showCoverage
             point={null}
             coverage={c.coverage}
             onChange={

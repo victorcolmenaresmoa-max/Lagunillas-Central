@@ -23,6 +23,8 @@ Solo el primer repartidor puede aceptar; la transacción bloquea su fila y la de
 
 ## Mapa: datos comprobados y límites
 
+La cartografía visible ahora usa TomTom; configurar las variables siguiendo [TomTom y GPS](tomtom-maps.md). Las fuentes siguientes corresponden al contorno y referencias iniciales del servicio, no a las calles que dibuja Google. El selector de dirección ya no coloca casas en referencias genéricas: usa GPS o un pin elegido por el usuario.
+
 - Centro: [OSM node 722277188](https://www.openstreetmap.org/node/722277188), 8.4978615, -71.3896149.
 - El Molino: [OSM node 9068787411](https://www.openstreetmap.org/node/9068787411), 8.5074744, -71.4080858.
 - Laguna de Urao: [OSM way 57800085](https://www.openstreetmap.org/way/57800085), geometría consultada el 3 de octubre de 2026. El archivo `lib/laguna-urao.json` conserva fuente, fecha y licencia ODbL. Se excluyen destinos dentro del agua.

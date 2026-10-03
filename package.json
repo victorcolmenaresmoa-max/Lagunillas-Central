@@ -10,7 +10,8 @@
     "test:db": "node tests/reglas-db.test.mjs",
     "vapid": "node -e \"const k=require('web-push').generateVAPIDKeys();console.log('NEXT_PUBLIC_VAPID_PUBLIC_KEY='+k.publicKey+'\\nVAPID_PRIVATE_KEY='+k.privateKey)\"",
     "test:orders": "node tests/orders.test.mjs",
-    "test:buyer": "node tests/buyer-access.test.mjs"
+    "test:buyer": "node tests/buyer-access.test.mjs",
+    "test:maps": "node tests/tomtom-maps.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

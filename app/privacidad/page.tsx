@@ -174,7 +174,7 @@ export default async function PrivacidadPage() {
             </li>
             <li>
               <b>Vercel</b>: aloja la app.
-            </li><li><b>OpenStreetMap y el servicio de rutas OSRM</b>: muestran el mapa y calculan recorridos. El mapa solicita mosaicos de la zona visible y el servicio de rutas recibe los puntos de origen y destino, sin nombres ni teléfonos. Las rutas pueden estimarse cuando el servicio no está disponible.
+            </li><li><b>TomTom y el servicio de rutas OSRM</b>: TomTom muestra el mapa y recibe información de la conexión y del área visible, que puede incluir el punto seleccionado o la ubicación autorizada. OSRM recibe los puntos de origen y destino para calcular recorridos, sin nombres ni teléfonos. Las rutas pueden estimarse cuando el servicio no está disponible.
             </li>
             <li>
               <b>Google (Gmail)</b>: envía los correos con códigos para confirmar tu cuenta o recuperar tu contraseña.

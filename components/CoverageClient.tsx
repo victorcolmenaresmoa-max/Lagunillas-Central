@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import DeliveryMap from "./DeliveryMap";
+import DeliveryMap, { PointPicker } from "./DeliveryMap";
 import { CENTER, covered, type DeliveryConfig, type Point } from "@/lib/geo";
 export default function CoverageClient({
   config: c,
@@ -9,6 +9,7 @@ export default function CoverageClient({
   config: DeliveryConfig;
 }) {
   const [point, setPoint] = useState<Point | null>(null);
+  const [showZone, setShowZone] = useState(false);
   return (
     <main className="mx-auto max-w-md space-y-4 p-4 pb-12">
       <Link href="/" className="btn-ghost">
@@ -16,10 +17,11 @@ export default function CoverageClient({
       </Link>
       <h1 className="heading text-3xl">Delivery en Lagunillas</h1>
       <p>
-        El contorno verde muestra la cobertura operativa. Toca un lugar para
-        comprobar si está dentro.
+        Usa tu ubicación o toca tu dirección en TomTom para comprobar
+        si está dentro de la zona de delivery configurada.
       </p>
-      <DeliveryMap point={point} onChange={setPoint} coverage={c.coverage} />
+      <PointPicker point={point} onChange={setPoint} coverage={c.coverage} />
+      <details className="text-sm" onToggle={e => setShowZone(e.currentTarget.open)}><summary className="cursor-pointer font-bold">Ver zona de delivery configurada</summary>{showZone && <DeliveryMap point={point} coverage={c.coverage} showCoverage />}</details>
       {point && (
         <p
           role="status"
@@ -30,8 +32,8 @@ export default function CoverageClient({
           }
         >
           {covered(point, c.coverage)
-            ? "Dentro de la cobertura de Lagunillas."
-            : "Fuera de cobertura o dentro de la laguna. No se admite delivery a este punto."}
+            ? "Dentro de la zona de delivery configurada."
+            : "Este punto no está habilitado para delivery. Si está en Lagunillas, consulta con la administración para revisar la zona."}
         </p>
       )}
       <div className="card space-y-2 p-4">
@@ -52,16 +54,16 @@ export default function CoverageClient({
         </p>
       </div>
       <p className="text-xs text-tinta-500">
-        La cobertura es un perímetro operativo editable, no un mapa oficial de
-        barrios. Las referencias locales se completan desde Administración.
+        TomTom muestra calles y lugares. La zona de delivery es un límite
+        separado, configurado por la administración, que requiere validación local.
       </p>
       <a
-        href="https://www.openstreetmap.org/node/722277188"
+        href="https://www.tomtom.com/maps/"
         target="_blank"
         rel="noreferrer"
         className="underline text-sm"
       >
-        Lagunillas en OpenStreetMap
+        TomTom: proveedor del mapa
       </a>
     </main>
   );

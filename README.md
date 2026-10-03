@@ -65,6 +65,8 @@ Ver [pedidos y cobertura](docs/pedidos-y-cobertura.md) para activar la migració
 
 El acceso de compradores está en `/entrar` y `/registro/cliente`. Los registros de comercios y repartidores están en `/aliados`. Ver [acceso de compradores y categorías](docs/acceso-compradores.md); para actualizar una base existente, aplicar `migrations/20261003_buyer_access_categories.sql` después de la migración de pedidos. `npm run test:buyer` comprueba el retorno a la compra y el registro de las 22 categorías en PostgreSQL local.
 
+Los mapas usan TomTom. Ver [configuración de TomTom y GPS](docs/tomtom-maps.md) para crear la clave de Map Display API, restringirla y añadir la variable en Vercel. La ubicación del comprador se obtiene con permiso del navegador y puede corregirse moviendo el pin. La zona de delivery sigue siendo un perímetro configurable que necesita validación local.
+
 ## Puesta en marcha (paso a paso)
 
 ### Paso 1 · Crear la base de datos en Supabase
