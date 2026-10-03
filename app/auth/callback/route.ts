@@ -11,7 +11,9 @@ export async function GET(req: Request) {
   const next = url.searchParams.get('next') || '/entrar';
   const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/entrar';
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    // auth-helpers expects a resolved store; Next 15's cookies() is asynchronous.
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore as unknown as ReturnType<typeof cookies> });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) return NextResponse.redirect(new URL('/entrar?error=enlace', url.origin));
   }

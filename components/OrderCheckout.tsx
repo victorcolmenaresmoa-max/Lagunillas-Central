@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth, apiFetch } from "@/lib/auth";
 import type { Merchant, Product } from "@/lib/types";
@@ -26,9 +26,16 @@ export default function OrderCheckout({
     [quote, setQuote] = useState<any>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const requestKey = useRef<string | null>(null);
+  const cartSignature = JSON.stringify(
+    items.map((i) => [i.product.id, i.qty, i.price]),
+  );
+  useEffect(() => {
+    requestKey.current = null;
+  }, [cartSignature, mode, addressId]);
   const total = items.reduce((s, i) => s + i.qty * i.price, 0);
   useEffect(() => {
-    if (!sb || !session || profile?.role !== 'client') return;
+    if (!sb || !session || profile?.role !== "client") return;
     apiFetch(sb, "/api/order-profile")
       .then((d) => {
         setAddresses(d.addresses);
@@ -38,7 +45,13 @@ export default function OrderCheckout({
   }, [sb, session, profile]);
   useEffect(() => {
     setQuote(null);
-    if (!sb || !session || profile?.role !== 'client' || (mode === "delivery" && !addressId)) return;
+    if (
+      !sb ||
+      !session ||
+      profile?.role !== "client" ||
+      (mode === "delivery" && !addressId)
+    )
+      return;
     let active = true;
     apiFetch(sb, "/api/orders/quote", {
       merchant_id: merchant.id,
@@ -61,11 +74,14 @@ export default function OrderCheckout({
     setBusy(true);
     setError("");
     try {
+      requestKey.current ||= crypto.randomUUID();
       const { id } = await apiFetch(sb, "/api/orders", {
         merchant_id: merchant.id,
+        request_key: requestKey.current,
         address_id: addressId,
         fulfillment: mode,
         expected_fee: quote.fee,
+        expected_subtotal: total,
         items: items.map((i) => ({ product_id: i.product.id, qty: i.qty })),
       });
       onSent();
@@ -88,7 +104,15 @@ export default function OrderCheckout({
     }
   };
   const saveCart = () => {
-    try { sessionStorage.setItem(`lc-checkout-${merchant.id}`, JSON.stringify({ items: items.map(i => ({ product_id: i.product.id, qty: i.qty })), expires: Date.now() + 86400000 })); } catch {}
+    try {
+      sessionStorage.setItem(
+        `lc-checkout-${merchant.id}`,
+        JSON.stringify({
+          items: items.map((i) => ({ product_id: i.product.id, qty: i.qty })),
+          expires: Date.now() + 86400000,
+        }),
+      );
+    } catch {}
   };
   const wa = waLink(
     merchant.whatsapp_number,
@@ -158,12 +182,18 @@ export default function OrderCheckout({
         </label>
         {loading ? (
           <p>Cargando tu cuenta…</p>
-        ) : !session || profile?.role !== 'client' ? (
+        ) : !session || profile?.role !== "client" ? (
           <div className="card space-y-2 p-4">
             <p>
-              Compra con confianza. Inicia sesión para confirmar tus pagos y seguir tu delivery hasta la entrega.
+              Compra con confianza. Inicia sesión para confirmar tus pagos y
+              consultar el estado de tu pedido hasta la entrega.
             </p>
-            {session && <p className="text-sm">Tienes abierta una cuenta de trabajo. Usa una cuenta de comprador para hacer este pedido.</p>}
+            {session && (
+              <p className="text-sm">
+                Tienes abierta una cuenta de trabajo. Usa una cuenta de
+                comprador para hacer este pedido.
+              </p>
+            )}
             <Link
               className="btn-primary w-full"
               onClick={saveCart}
@@ -171,7 +201,11 @@ export default function OrderCheckout({
             >
               Iniciar sesión
             </Link>
-            <Link onClick={saveCart} className="btn-ghost w-full" href={`/registro/cliente?next=${encodeURIComponent("/comercio/" + merchant.slug)}`}>
+            <Link
+              onClick={saveCart}
+              className="btn-ghost w-full"
+              href={`/registro/cliente?next=${encodeURIComponent("/comercio/" + merchant.slug)}`}
+            >
               Crear mi cuenta para comprar
             </Link>
           </div>
@@ -208,18 +242,17 @@ export default function OrderCheckout({
                 </p>
                 {mode === "delivery" && (
                   <p className="text-xs">
-                    {Number(quote.km).toFixed(2)} km ·{" "}
-                    {quote.method === "road"
-                      ? "distancia por carretera"
-                      : "estimación con factor de recorrido"}
-                    . El tramo del repartidor al comercio no se cobra.
+                    Tarifa fija dentro de Lagunillas. El comercio y el
+                    repartidor revisan tu dirección antes de aceptar.
                   </p>
                 )}
               </div>
             )}
             <p className="text-sm">
-              El comercio acepta primero. Después pagas los productos al
-              comercio y el delivery al repartidor, cada uno con su comprobante.
+              No pagues por adelantado. Cuando el pedido esté presente, pagas
+              los productos al comercio y el delivery al repartidor por pago
+              móvil. Cada receptor confirma su banco; entrega el código solo al
+              recibir el paquete.
             </p>
             <button
               className="btn-primary w-full"

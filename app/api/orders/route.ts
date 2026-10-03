@@ -6,10 +6,10 @@ import {
   loadOrder,
   notifyOrder,
   orderView,
-  roadDistance,
   tick,
 } from "@/lib/order-server";
-import { deliveryPrice, covered, isPoint } from "@/lib/geo";
+import { TERMS_VERSION } from "@/lib/legal";
+import { isOpenNow } from "@/lib/utils";
 import { clean, isUuid, isValidPhone, normalizePhone } from "@/lib/validate";
 export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
@@ -38,17 +38,10 @@ export async function GET(req: Request) {
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (!d || d.status !== "approved")
-        return privateJson({ orders: [] });
-      const { data: p } = await sb
-        .from("driver_positions")
-        .select("updated_at")
-        .eq("driver_id", d.id)
-        .maybeSingle();
-      query =
-        d.is_online && p && Date.now() - Date.parse(p.updated_at) < 180000
-          ? query.or(`driver_id.eq.${d.id},state.eq.searching`)
-          : query.eq("driver_id", d.id);
+      if (!d || d.status !== "approved") return privateJson({ orders: [] });
+      query = d.is_online
+        ? query.or(`driver_id.eq.${d.id},state.eq.searching`)
+        : query.eq("driver_id", d.id);
     } else if (profile.role !== "admin")
       query = query.eq("customer_id", user.id);
     const { data, error } = await query;
@@ -56,23 +49,6 @@ export async function GET(req: Request) {
     const orders = await Promise.all(
       (data || []).map(async (o) => {
         if (profile.role === "delivery" && o.driver?.user_id !== user.id) {
-          const { data: d } = await sb
-            .from("drivers")
-            .select("id")
-            .eq("user_id", user.id)
-            .single();
-          const { data: p } = await sb
-            .from("driver_positions")
-            .select("point")
-            .eq("driver_id", d?.id)
-            .single();
-          const { kmBetween } = await import("@/lib/geo");
-          if (
-            o.expanded_at &&
-            Date.parse(o.expanded_at) > Date.now() &&
-            (!p || kmBetween(o.origin, p.point) > 2)
-          )
-            return null;
           return {
             id: o.id,
             code: o.code,
@@ -84,8 +60,9 @@ export async function GET(req: Request) {
             delivery_fee: o.delivery_fee,
             commission_percent: o.commission_percent,
             route_geometry: o.route_geometry,
-            driver_point: p?.point,
-            approach_km: p ? kmBetween(p.point, o.origin) : null,
+            address: o.address,
+            merchant_address: o.merchant_address || o.merchant.address,
+            payment_mode: o.payment_mode,
             merchant: { name: o.merchant.name, address: o.merchant.address },
             created_at: o.created_at,
             available: true,
@@ -107,6 +84,7 @@ export async function POST(req: Request) {
       return fail("Para comprar dentro de la app usa tu cuenta de cliente.");
     if (
       !isUuid(b.merchant_id) ||
+      !isUuid(b.request_key) ||
       !Array.isArray(b.items) ||
       !b.items.length ||
       b.items.length > 30
@@ -116,6 +94,13 @@ export async function POST(req: Request) {
       return fail("Elige delivery o retiro.");
     if (!profile.full_name || !isValidPhone(profile.phone || ""))
       return fail("Completa tu nombre y teléfono en Mi cuenta.");
+    const { data: existing } = await sb
+      .from("app_orders")
+      .select("id")
+      .eq("customer_id", user.id)
+      .eq("request_key", b.request_key)
+      .maybeSingle();
+    if (existing) return privateJson({ id: existing.id });
     const c = await config(sb);
     if (c.bcv <= 0 || !c.bcvDate)
       return fail(
@@ -126,7 +111,7 @@ export async function POST(req: Request) {
       .select("*")
       .eq("id", b.merchant_id)
       .single();
-    if (!m?.is_active || m.status !== "approved" || !m.user_id)
+    if (!m?.is_active || m.status !== "approved" || !m.user_id || !isOpenNow(m))
       return fail("Comercio no disponible.");
     const { data: account } = await sb
       .from("order_accounts")
@@ -134,13 +119,12 @@ export async function POST(req: Request) {
       .eq("user_id", m.user_id)
       .single();
     if (
-      !isPoint(account?.point) ||
-      !covered(account.point, c.coverage) ||
+      !m.address?.trim() ||
       !account?.account.bank ||
       !account.account.phone ||
       !account.account.document
     )
-      return fail("El comercio debe guardar su ubicación y datos de pago.");
+      return fail("El comercio debe guardar su dirección y datos de pago.");
     let address = "Retiro en el comercio",
       sector = "",
       destination = null;
@@ -152,12 +136,11 @@ export async function POST(req: Request) {
         .eq("id", b.address_id)
         .eq("user_id", user.id)
         .single();
-      if (!a || !isPoint(a.point) || !covered(a.point, c.coverage))
-        return fail("Selecciona una dirección guardada dentro de Lagunillas.");
+      if (!a?.address)
+        return fail("Selecciona una dirección escrita guardada.");
       address = a.address;
       sector = a.sector;
-      destination = a.point;
-      distance = await roadDistance(account.point, destination, c);
+      distance = { km: 0, method: "fixed", geometry: null };
     }
     const ids: string[] = [
       ...new Set<string>(b.items.map((i: any) => String(i.product_id))),
@@ -207,8 +190,16 @@ export async function POST(req: Request) {
       return fail("Ya tienes varios pedidos activos.", 429);
     const subtotal =
       Math.round(items.reduce((s, i) => s + i.qty * i.price, 0) * 100) / 100;
+    if (
+      typeof b.expected_subtotal !== "number" ||
+      Math.abs(b.expected_subtotal - subtotal) > 0.001
+    )
+      return fail(
+        "Cambió el precio de los productos. Revisa el carrito antes de confirmar.",
+        409,
+      );
     const fee =
-      b.fulfillment === "delivery" ? deliveryPrice(distance.km, c) : 0;
+      b.fulfillment === "delivery" ? Math.round(c.base * 100) / 100 : 0;
     if (
       typeof b.expected_fee !== "number" ||
       Math.abs(b.expected_fee - fee) > 0.001
@@ -221,6 +212,8 @@ export async function POST(req: Request) {
       p_actor: user.id,
       p_data: {
         merchant_id: m.id,
+        request_key: b.request_key,
+        terms_version: TERMS_VERSION,
         customer_id: user.id,
         customer_name: profile.full_name,
         customer_phone: normalizePhone(profile.phone),
@@ -228,7 +221,10 @@ export async function POST(req: Request) {
         address,
         sector,
         destination,
-        origin: account.point,
+        origin: null,
+        merchant_address: m.address,
+        merchant_payment: account.account,
+        payment_mode: "on_receipt",
         items,
         subtotal,
         delivery_fee: fee,
@@ -247,7 +243,7 @@ export async function POST(req: Request) {
     await notifyOrder(
       sb,
       await loadOrder(sb, orderId),
-      "Pedido nuevo: el comercio debe aceptar antes de que pagues.",
+      "Pedido nuevo con pago al recibir: revisa dirección, productos y disponibilidad antes de aceptar.",
     );
     return privateJson({ id: orderId });
   } catch (e: any) {

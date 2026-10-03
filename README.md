@@ -1,10 +1,10 @@
 # Lagunillas Central
 
-Plataforma hiperlocal para el Lagunillas, municipio Sucre, Mérida. Los clientes exploran sin cuenta y, con correo confirmado, hacen pedidos, pagan por separado al comercio y al repartidor y siguen la entrega dentro de la app. El retiro por WhatsApp sigue disponible. Los repartidores reciben el aviso en el teléfono y los comercios administran su catálogo. Tú apruebas y administras todo.
+Plataforma hiperlocal para el Lagunillas, municipio Sucre, Mérida. Los clientes exploran sin cuenta y, con correo confirmado, hacen pedidos, pagan al recibir directamente al comercio y al repartidor y consultan el estado del pedido dentro de la app. El retiro por WhatsApp sigue disponible. Los repartidores reciben el aviso en el teléfono y los comercios administran su catálogo. Tú apruebas y administras todo.
 
 Se instala en el teléfono como una app (PWA), sin pasar por tiendas de aplicaciones.
 
-**Tecnología:** Next.js 14 · TypeScript · Tailwind CSS · Supabase (base de datos, cuentas y fotos) · Notificaciones Web Push
+**Tecnología:** Next.js 15.5.24 · TypeScript · Tailwind CSS · Supabase (base de datos, cuentas y fotos) · Notificaciones Web Push
 
 ---
 
@@ -12,7 +12,7 @@ Se instala en el teléfono como una app (PWA), sin pasar por tiendas de aplicaci
 
 | Vista | Dirección | Quién | Qué hace |
 |---|---|---|---|
-| **Cliente** | `/`, `/mis-pedidos`, `/mi-cuenta` | Explorar sin cuenta; pedir con cuenta confirmada | Direcciones con mapa, cotización por distancia, pagos separados, chat, código de entrega y calificación |
+| **Cliente** | `/`, `/mis-pedidos`, `/mi-cuenta` | Explorar sin cuenta; pedir con cuenta confirmada | Direcciones escritas con Google Maps externo, tarifa fija, pago al recibir, chat con fotos/audio, códigos y calificación |
 | **Comercio** | `/panel` | Dueños de negocio aprobados | Edita su perfil, logo y portada, maneja productos con foto, publica ofertas flash, ve sus pedidos con delivery y su membresía |
 | **Repartidor** | `/repartidor` | Repartidores aprobados | Se pone disponible, recibe una notificación con sonido por cada pedido, lo acepta (el primero que acepta se lo queda), lo marca como recogido y entregado, y ve sus ganancias |
 | **Administración** | `/admin` | Tú | Aprueba o suspende comercios y repartidores, asigna planes, destaca comercios, ve todos los pedidos y ajusta el precio del delivery y de los planes |
@@ -35,7 +35,7 @@ Para registrarse, comercios y repartidores dan datos legales en 3 pasos y acepta
 
 - Solo pueden registrarse **mayores de 18 años**, y una cédula no puede tener dos cuentas del mismo tipo.
 - Estos datos van a una tabla privada (`legal_profiles`) y los documentos a un almacén privado (`documentos`): **solo los ven el dueño de la cuenta y tú**. Ni el público ni los comercios ni otros repartidores.
-- En **Administración → Comercios / Repartidores**, el botón 🛡 muestra si la verificación está completa, los datos y las fotos de los documentos, y te deja notas internas. Si apruebas una cuenta incompleta, la app te avisa antes.
+- En **Administración → Comercios / Repartidores**, el botón 🛡 muestra si la verificación está completa, los datos y las fotos de los documentos, y te deja notas internas. La aprobación se bloquea si falta la verificación requerida.
 - Quienes se registraron antes de este cambio ven en su panel **"Completa tu verificación"**.
 - Si algún día cambias los términos, cambia la fecha `TERMS_VERSION` en `lib/legal.ts`: a todos se les pedirá aceptarlos de nuevo.
 
@@ -57,15 +57,15 @@ Para registrarse, comercios y repartidores dan datos legales en 3 pasos y acepta
 
 ---
 
-## Integración de pedidos de octubre de 2026
+## Pedidos con pago al recibir y navegación externa
 
-Ver [pedidos y cobertura](docs/pedidos-y-cobertura.md) para activar la migración, configurar BCV, validar el perímetro de Lagunillas y programar vencimientos. `/cobertura` muestra el mapa público. Las tarifas iniciales son $1 hasta 1,5 km, $0,40/km adicional, redondeo a $0,25, tope $4 y comisión 10 %. Solo se admiten destinos internos. Los pedidos anteriores por WhatsApp conservan sus pantallas.
+Leer [despliegue y flujo completo](docs/pago-al-recibir.md). Para una base existente, aplicar `migrations/20261003_receipt_payment.sql` después de las dos migraciones anteriores, antes de desplegar. `schema.sql` incluye todo para instalaciones nuevas. Hacer push no aplica automáticamente las migraciones de Supabase.
 
-`npm run test:orders` ejecuta las pruebas locales de PostgreSQL embebido, sin tocar Supabase.
+Los pedidos nuevos no piden anticipos: comercio acepta, repartidor recoge con código, llega al cliente, cada receptor verifica el pago móvil y se cierra con el código del comprador. La comisión del repartidor se reserva al aceptar y se descuenta al entregar. Los pedidos anteriores conservan su modalidad financiera.
 
-El acceso de compradores está en `/entrar` y `/registro/cliente`. Los registros de comercios y repartidores están en `/aliados`. Ver [acceso de compradores y categorías](docs/acceso-compradores.md); para actualizar una base existente, aplicar `migrations/20261003_buyer_access_categories.sql` después de la migración de pedidos. `npm run test:buyer` comprueba el retorno a la compra y el registro de las 22 categorías en PostgreSQL local.
+No hay mapa integrado, rastreo GPS ni rutas OSRM. Direcciones escritas y referencias se abren en Google Maps externo, sin clave API. La tarifa nueva es fija y configurable en Administración; los aliados revisan cobertura y acceso antes de aceptar. Una dirección escrita no garantiza ubicación exacta.
 
-Los mapas usan TomTom. Ver [configuración de TomTom y GPS](docs/tomtom-maps.md) para crear la clave de Map Display API, restringirla y añadir la variable en Vercel. La ubicación del comprador se obtiene con permiso del navegador y puede corregirse moviendo el pin. La zona de delivery sigue siendo un perímetro configurable que necesita validación local.
+`npm run test:receipt`, `npm run test:maps`, `npm run test:orders` y `npm run test:buyer` ejecutan las pruebas locales. `npm run test:db` requiere una instalación Supabase de pruebas con sus credenciales; nunca ejecutarlo contra producción. Ver [acceso de compradores](docs/acceso-compradores.md).
 
 ## Puesta en marcha (paso a paso)
 

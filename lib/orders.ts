@@ -10,6 +10,7 @@ export type OrderState =
   | "preparing"
   | "picked_up"
   | "pickup_ready"
+  | "awaiting_handover"
   | "delivered"
   | "cancelled"
   | "disputed";
@@ -23,6 +24,7 @@ export const ORDER_LABEL: Record<OrderState, string> = {
   preparing: "Preparando / repartidor en camino",
   picked_up: "Camino a tu casa",
   pickup_ready: "Listo para retirar",
+  awaiting_handover: "Pagos confirmados: entregar el paquete",
   delivered: "Entregado",
   cancelled: "Cancelado",
   disputed: "En reclamo",
@@ -32,7 +34,7 @@ export interface Address {
   label: string;
   address: string;
   sector: string;
-  point: Point;
+  point: Point | null;
 }
 export interface PaymentAccount {
   bank: string;
@@ -65,7 +67,14 @@ export interface AppOrder {
   customer_phone: string;
   address: string;
   destination: Point | null;
-  origin: Point;
+  origin: Point | null;
+  payment_mode: "prepaid" | "on_receipt";
+  merchant_address?: string;
+  pickup_code?: string;
+  collected_at?: string;
+  arrived_at?: string;
+  returned_by_driver?: boolean;
+  returned_to_merchant?: boolean;
   sector: string;
   items: OrderItem[];
   subtotal: number;
@@ -110,6 +119,7 @@ export interface AppOrder {
     channel: string;
     text: string;
     image_url?: string;
+    audio_url?: string;
     created_at: string;
   }[];
   config?: DeliveryConfig;

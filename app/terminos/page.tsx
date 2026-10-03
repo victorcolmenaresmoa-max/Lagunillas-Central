@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 export const revalidate = 3600;
 
-const fecha = (v: string) => new Date(v + 'T12:00:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
+const fecha = (v: string) => new Date(v.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
 
 export default async function TerminosPage() {
   const settings = await getSettings();
@@ -72,8 +72,7 @@ export default async function TerminosPage() {
           </p>
           <p>
             Los comercios y repartidores los aceptan de forma expresa al crear su cuenta, marcando la casilla correspondiente. Guardamos la fecha y la versión
-            aceptada. Esa aceptación electrónica tiene el mismo valor que una firma, conforme a la legislación venezolana sobre mensajes de datos y firmas
-            electrónicas.
+            aceptada. Conservamos ese registro como evidencia de aceptación, conforme a los requisitos legales aplicables.
           </p>
         </>
       ),
@@ -84,7 +83,7 @@ export default async function TerminosPage() {
       body: (
         <ul>
           <li>Para tener cuenta de <b>comercio</b> o de <b>repartidor</b> debes ser mayor de 18 años y tener capacidad legal para contratar.</li>
-          <li>Los clientes no necesitan cuenta. Si eres menor de edad, pide con autorización de tu representante.</li>
+          <li>Los clientes necesitan cuenta confirmada para pedir dentro de la app. Si eres menor de edad, pide con autorización de tu representante.</li>
           <li>Cada persona puede tener una sola cuenta de cada tipo. Una misma cédula no puede registrarse dos veces como repartidor ni como comercio.</li>
         </ul>
       ),
@@ -102,7 +101,7 @@ export default async function TerminosPage() {
             </li>
             <li>
               <b>No prestamos el servicio de entrega.</b> Los repartidores son personas independientes que deciden libremente cuándo trabajar y qué pedidos
-              aceptar. No son empleados, trabajadores ni representantes de Lagunillas Central, y entre ellos y nosotros no existe relación laboral.
+              aceptar. La calificación jurídica de la relación depende de los acuerdos y de la actividad real, conforme a la legislación aplicable.
             </li>
             <li>
               <b>No cobramos ni recibimos el pago de los pedidos.</b> Por ahora el cliente paga directamente al comercio y al repartidor (ver sección
@@ -184,9 +183,9 @@ export default async function TerminosPage() {
         <>
           <ul>
             <li>Los precios de los productos los fija cada comercio. Los montos se muestran como referencia en la moneda indicada en la app.</li>
-            <li>El delivery opera solo dentro de la cobertura configurada para Lagunillas. La tarifa usa la distancia del comercio al destino, con parámetros fijados por la administración, y se muestra antes de enviar. Cuando no hay ruta por carretera disponible, se indica que la distancia es estimada. El trayecto del repartidor al comercio no se cobra al cliente.</li>
-            <li>La tasa BCV y su fecha se guardan en el pedido. El comercio debe aceptar antes de que el cliente pague. Una captura de pago nunca sustituye la verificación del banco.</li>
-            <li>Al completar una entrega se descuenta del saldo prepagado del repartidor la comisión configurada y guardada en el pedido. No se puede aceptar sin saldo suficiente. Las recargas necesitan confirmación de la administración.</li>
+            <li>Los pedidos nuevos usan una tarifa fija de delivery para Lagunillas, mostrada antes de enviar. Cliente y comercio indican direcciones escritas; Google Maps se abre como servicio externo. El comercio y el repartidor deben comprobar acceso y cobertura antes de aceptar. Los pedidos anteriores conservan sus condiciones originales.</li>
+            <li>La tasa BCV y su fecha se guardan en el pedido. Los pedidos nuevos se pagan al recibir: el repartidor habilita el pago al llegar, o el cliente al estar en el local para retirar. No se pide anticipar dinero antes del traslado. Una captura de pago nunca sustituye la verificación del banco.</li>
+            <li>Al aceptar se reserva en el saldo prepagado del repartidor la comisión configurada y guardada en el pedido; al completar se descuenta una sola vez. No se puede aceptar sin saldo disponible suficiente. Las cancelaciones anteriores a recogida liberan la reserva; después de recoger requieren resolver la custodia del paquete y los pagos. Las recargas necesitan confirmación de la administración.</li>
             <li>
               <b>El cliente paga directamente</b> los productos al comercio y el delivery al repartidor. Los pedidos dentro de la app usan pago móvil con comprobante, últimos cinco dígitos de referencia, banco y monto. Solo quien cobra confirma que vio el dinero en su banco. La app no recibe ese dinero. Efectivo, punto de venta y Zelle se acuerdan directamente para retiro o WhatsApp.
             </li>
@@ -206,11 +205,11 @@ export default async function TerminosPage() {
       body: (
         <ul>
           <li>Cancelar después de cobrar abre un reclamo; quien recibió el pago debe registrar la devolución y el cliente confirma que llegó. Los plazos de aceptación y pago pueden cancelar o liberar una asignación; los plazos de confirmación bancaria avisan a la administración y nunca confirman un pago automáticamente.</li>
-          <li>La entrega requiere el código de cuatro dígitos del cliente. El chat cliente-comercio abre después de aceptar y cierra al salir el pedido; el chat con el repartidor abre tras confirmar el pago y cierra dos horas después de entregar. En reclamo, la administración puede leer el chat para revisar el caso.</li>
+          <li>Los pedidos nuevos requieren un código de recogida del comercio y otro de entrega del cliente. La entrega solo se registra tras confirmar los pagos correspondientes y el código del cliente. Ese código acredita recepción dentro del procedimiento, pero no elimina reclamos sobre calidad o contenido. El chat admite texto, fotos y audio; en reclamos se habilita soporte. Tras entregar, se admite comunicación durante 48 horas; esto no limita otros plazos legales de reclamación.</li>
           <li>Los reclamos sobre el producto (calidad, cantidad, precio, estado) se hacen al comercio.</li>
           <li>Los reclamos sobre la entrega (demora, trato, daños en el traslado) se hacen al repartidor.</li>
           <li>
-            Puedes avisarnos {contacto}. Revisaremos el caso, podremos mediar y, si hubo una falta grave, suspender la cuenta responsable. Esto no limita los
+            Puedes avisarnos {contacto}. Revisaremos el caso, podremos mediar y, si hubo una falta grave, suspender la cuenta responsable. Un pago directo al comercio o repartidor no puede ser revertido unilateralmente por la app. Un código, saldo o ubicación no constituye un seguro contra pérdida o robo. Esto no limita los
             derechos que te da la ley como consumidor.
           </li>
         </ul>

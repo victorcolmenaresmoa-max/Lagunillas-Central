@@ -6,7 +6,7 @@ import {
   privateUrl,
   uploadedPhoto,
 } from "@/lib/order-server";
-import { covered, isPoint, validConfig } from "@/lib/geo";
+import { validConfig } from "@/lib/geo";
 import { clean, isValidPhone, normalizePhone } from "@/lib/validate";
 export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
@@ -27,18 +27,24 @@ export async function GET(req: Request) {
         sb.from("drivers").select("id").eq("user_id", user.id).maybeSingle(),
         config(sb),
       ]);
+    let reserved = 0;
     let wallet = null,
-      topups: any[] = [], suspended: any[] = [];
+      topups: any[] = [],
+      suspended: any[] = [];
     if (driver) {
       const { data } = await sb
         .from("driver_wallets")
-        .select("balance")
+        .select("balance,reserved")
         .eq("driver_id", driver.id)
         .maybeSingle();
       wallet = data?.balance || 0;
+      reserved = data?.reserved || 0;
     }
     if (profile.role === "admin") {
-      const {data: suspendedProfiles} = await sb.from('profiles').select('user_id,full_name,role').eq('suspended',true);
+      const { data: suspendedProfiles } = await sb
+        .from("profiles")
+        .select("user_id,full_name,role")
+        .eq("suspended", true);
       suspended = suspendedProfiles || [];
       const { data } = await sb
         .from("wallet_topups")
@@ -58,6 +64,7 @@ export async function GET(req: Request) {
       point: account?.point || null,
       config: c,
       wallet,
+      reserved,
       topups,
       suspended,
       profile,
@@ -73,10 +80,8 @@ export async function POST(req: Request) {
     const c = await config(sb);
     let error: any;
     if (b.action === "address") {
-      if (!isPoint(b.point) || !covered(b.point, c.coverage))
-        return fail(
-          "Tu dirección debe estar dentro de la cobertura de Lagunillas.",
-        );
+      if (profile.role !== "client")
+        return fail("Usa tu cuenta de comprador.", 403);
       if (clean(b.address, 200).length < 6 || clean(b.label, 60).length < 2)
         return fail("Escribe dirección y nombre de la dirección.");
       const { count } = await sb
@@ -85,15 +90,13 @@ export async function POST(req: Request) {
         .eq("user_id", user.id);
       if ((count || 0) >= 10)
         return fail("Puedes guardar hasta 10 direcciones.");
-      ({ error } = await sb
-        .from("customer_addresses")
-        .insert({
-          user_id: user.id,
-          label: clean(b.label, 60),
-          address: clean(b.address, 200),
-          sector: clean(b.sector, 80),
-          point: b.point,
-        }));
+      ({ error } = await sb.from("customer_addresses").insert({
+        user_id: user.id,
+        label: clean(b.label, 60),
+        address: clean(b.address, 200),
+        sector: clean(b.sector, 80),
+        point: null,
+      }));
     } else if (b.action === "delete_address")
       ({ error } = await sb
         .from("customer_addresses")
@@ -127,19 +130,21 @@ export async function POST(req: Request) {
         !/^[VEJGPvejpg]-?\d{5,12}(-?\d)?$/.test(account.document)
       )
         return fail("Completa banco, teléfono y cédula/RIF de pago móvil.");
-      if (
-        profile.role === "merchant" &&
-        (!isPoint(b.point) || !covered(b.point, c.coverage))
-      )
-        return fail("Ubica tu comercio dentro de Lagunillas.");
-      ({ error } = await sb
-        .from("order_accounts")
-        .upsert({
-          user_id: user.id,
-          account,
-          point: profile.role === "merchant" ? b.point : null,
-          updated_at: new Date().toISOString(),
-        }));
+      if (profile.role === "merchant") {
+        const { data: merchant } = await sb
+          .from("merchants")
+          .select("address")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (clean(merchant?.address, 200).length < 6)
+          return fail("Guarda la dirección escrita del comercio en Perfil.");
+      }
+      ({ error } = await sb.from("order_accounts").upsert({
+        user_id: user.id,
+        account,
+        point: null,
+        updated_at: new Date().toISOString(),
+      }));
     } else if (b.action === "config") {
       if (profile.role !== "admin") return fail("No autorizado.", 403);
       if (!validConfig(b.config))
@@ -187,14 +192,12 @@ export async function POST(req: Request) {
         !(await uploadedPhoto(sb, b.receipt, `topups/${user.id}`))
       )
         return fail("Recarga inválida.");
-      ({ error } = await sb
-        .from("wallet_topups")
-        .insert({
-          driver_id: d.id,
-          amount: b.amount,
-          reference: b.reference,
-          receipt: b.receipt,
-        }));
+      ({ error } = await sb.from("wallet_topups").insert({
+        driver_id: d.id,
+        amount: b.amount,
+        reference: b.reference,
+        receipt: b.receipt,
+      }));
     } else if (b.action === "approve_topup") {
       if (profile.role !== "admin") return fail("No autorizado.", 403);
       ({ error } = await sb.rpc("approve_topup", {

@@ -7,8 +7,8 @@ import { PLANS, effectivePlan } from '@/lib/plans';
 // Siempre datos frescos: comercios recién aprobados, ofertas y horarios al instante
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const res = await getMerchantBySlug(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const res = await getMerchantBySlug((await params).slug);
   if (!res) return { title: 'Comercio no encontrado' };
   return {
     title: res.merchant.name,
@@ -17,8 +17,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function MerchantPage({ params }: { params: { slug: string } }) {
-  const res = await getMerchantBySlug(params.slug);
+export default async function MerchantPage({ params }: { params: Promise<{ slug: string }> }) {
+  const res = await getMerchantBySlug((await params).slug);
   if (!res) notFound();
   const [deals, settings] = await Promise.all([getActiveFlashDeals(res.merchant.id), getSettings()]);
   const plan = PLANS[effectivePlan(res.merchant)];

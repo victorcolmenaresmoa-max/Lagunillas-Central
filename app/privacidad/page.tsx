@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 export const revalidate = 3600;
 
-const fecha = (v: string) => new Date(v + 'T12:00:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
+const fecha = (v: string) => new Date(v.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
 
 export default async function PrivacidadPage() {
   const settings = await getSettings();
@@ -43,7 +43,7 @@ export default async function PrivacidadPage() {
       body: (
         <p>
           El responsable de tus datos es la administración de Lagunillas Central, la plataforma que conecta clientes, comercios y repartidores del municipio
-          Lagunillas, estado Mérida. Puedes escribirnos {contacto}.
+          Sucre, estado Mérida. Puedes escribirnos {contacto}.
         </p>
       ),
     },
@@ -58,7 +58,7 @@ export default async function PrivacidadPage() {
           <ul>
             <li>Cuando pides un repartidor: tu nombre, teléfono, dirección de entrega, nota y los productos del pedido.</li>
             <li>Cuando envías el pedido por WhatsApp, ese mensaje va directo al comercio a través de WhatsApp; nosotros no lo guardamos.</li>
-            <li>Guardamos tu nombre, teléfono, correo confirmado y direcciones con punto en el mapa en tu cuenta. No solicitamos cédula a clientes.</li>
+            <li>Guardamos tu nombre, teléfono, correo confirmado y direcciones escritas y referencias en tu cuenta. No solicitamos cédula a clientes.</li>
             <li>Guardamos los pedidos, comprobantes, referencias de pago, tasa BCV, reclamos, calificaciones y mensajes del chat para gestionar la entrega y atender incidencias.</li>
           </ul>
           <p>
@@ -80,7 +80,7 @@ export default async function PrivacidadPage() {
           </ul>
           <p>
             <b>Datos técnicos:</b> para enviarte notificaciones guardamos un identificador de tu teléfono; para mantener tu sesión usamos cookies necesarias; y
-            para frenar pedidos falsos revisamos por unos minutos la conexión desde la que llegan, sin guardarla. Usamos ubicación GPS solo cuando la autorizas para guardar una dirección o ubicar el comercio, y mientras el repartidor está disponible o lleva un pedido con la app abierta. No usamos cookies de publicidad.
+            No solicitamos ubicación GPS en el flujo nuevo. Los enlaces externos de Google Maps se abren únicamente cuando los pulsas y comparten la dirección indicada con ese proveedor. No usamos cookies de publicidad.
           </p>
         </>
       ),
@@ -154,7 +154,7 @@ export default async function PrivacidadPage() {
             </table>
           </div>
           <p>
-            Los comprobantes están en almacenamiento privado; solo los ve quien pagó, quien cobró y la administración. Los datos de pago móvil solo aparecen al cliente en el paso de pago. La administración solo puede leer los chats de pedidos en reclamo. Guardamos únicamente la última ubicación del repartidor, no su recorrido; se actualiza aproximadamente cada 15 segundos con pedido activo y cada 2 minutos disponible. El cliente ve esa ubicación durante la entrega, junto con su hora de actualización.
+            Los comprobantes están en almacenamiento privado; solo los ve quien pagó, quien cobró y la administración. Las fotos y audios del chat solo se muestran a los participantes autorizados de ese canal. Los datos de pago móvil solo aparecen al cliente en el paso de pago. La administración solo puede leer los chats de pedidos en reclamo. El flujo nuevo no solicita GPS ni rastrea al repartidor. Los registros históricos de ubicación y direcciones con coordenadas pueden seguir almacenados hasta aplicar la política de conservación. Los mensajes y archivos de soporte son visibles para los participantes del pedido y administración durante el reclamo.
           </p><p>
             <b>No vendemos ni alquilamos tus datos</b>, ni los usamos para publicidad de terceros.
           </p>
@@ -174,7 +174,7 @@ export default async function PrivacidadPage() {
             </li>
             <li>
               <b>Vercel</b>: aloja la app.
-            </li><li><b>TomTom y el servicio de rutas OSRM</b>: TomTom muestra el mapa y recibe información de la conexión y del área visible, que puede incluir el punto seleccionado o la ubicación autorizada. OSRM recibe los puntos de origen y destino para calcular recorridos, sin nombres ni teléfonos. Las rutas pueden estimarse cuando el servicio no está disponible.
+            </li><li><b>Google Maps</b>: solo al pulsar un enlace externo se comparte con Google la dirección que se va a buscar o usar para navegar. Esa interacción está sujeta a sus políticas. No cargamos mapas de TomTom ni calculamos rutas con OSRM en el flujo nuevo.
             </li>
             <li>
               <b>Google (Gmail)</b>: envía los correos con códigos para confirmar tu cuenta o recuperar tu contraseña.

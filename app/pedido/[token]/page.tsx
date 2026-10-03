@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { ArrowLeft, Phone, MapPin, Store, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import Landscape from '@/components/Landscape';
 import MerchantAvatar from '@/components/MerchantAvatar';
@@ -20,7 +21,8 @@ const ORDER: DeliveryStatus[] = ['searching', 'accepted', 'picked_up', 'delivere
 const hour = (iso: string | null) =>
   iso ? new Date(iso).toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Caracas' }) : '';
 
-export default function TrackingPage({ params }: { params: { token: string } }) {
+export default function TrackingPage() {
+  const params=useParams<{token:string}>();
   const [info, setInfo] = useState<TrackingInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);

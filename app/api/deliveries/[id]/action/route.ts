@@ -13,7 +13,8 @@ type Action = 'accept' | 'release' | 'picked_up' | 'delivered' | 'cancel';
  * Acciones sobre un pedido. Se ejecutan COMO el usuario (la base valida permisos),
  * y después se envían las notificaciones que correspondan.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params: pendingParams }: { params: Promise<{ id: string }> }) {
+  const params = await pendingParams;
   const auth = await getRequestUser(req);
   if (!auth) return NextResponse.json({ error: 'Tu sesión expiró. Vuelve a entrar.' }, { status: 401 });
   if (!isUuid(params.id)) return NextResponse.json({ error: 'Pedido inválido.' }, { status: 400 });

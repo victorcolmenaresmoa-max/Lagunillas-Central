@@ -27,6 +27,7 @@ import { styleFor } from '@/lib/categories';
 import type { FlashDealFull, Merchant, Product } from '@/lib/types';
 import { useCountdown, pad2 } from '@/lib/useCountdown';
 import { cn, formatPrice, formatTime, isOpenNow, normalizeWhatsapp } from '@/lib/utils';
+import { googleMapsSearch } from '@/lib/maps-address';
 import { isValidPhone } from '@/lib/validate';
 
 function WhatsAppIcon({ size = 22 }: { size?: number }) {
@@ -205,7 +206,7 @@ export default function MerchantClient({
           </div>
           {m.address && (
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.address}, Lagunillas, Mérida, Venezuela`)}`}
+              href={googleMapsSearch(m.address)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3.5 transition active:bg-cal-100"

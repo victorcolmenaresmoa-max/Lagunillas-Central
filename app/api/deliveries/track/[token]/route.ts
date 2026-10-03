@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 /** Seguimiento del pedido para el cliente (solo con el enlace secreto) */
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
+export async function GET(_req: Request, { params: pendingParams }: { params: Promise<{ token: string }> }) {
+  const params = await pendingParams;
   if (!isUuid(params.token)) return NextResponse.json({ error: 'Enlace inválido.' }, { status: 404 });
   const sb = getServiceClient();
   const { data: r } = await sb

@@ -100,37 +100,14 @@ export default function RepartidorPage() {
     };
   }, [loadDeliveries]);
 
-  useEffect(() => {
-    if (!sb || !driver?.is_online) return;
-    let active = true;
-    const update = async () => {
-      if (!active || document.visibilityState !== 'visible') return;
-      let hasOrder = false;
-      try { const d = await apiFetch(sb,'/api/orders'); hasOrder = d.orders.some((o:any) => !o.available && !['delivered','cancelled'].includes(o.state)); } catch {}
-      if (!navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition(p => {
-        if (active) apiFetch(sb,'/api/driver-position',{point:{lat:p.coords.latitude,lng:p.coords.longitude}}).catch((e:any)=>notify(e.message,'err'));
-      }, () => { apiFetch(sb,'/api/driver-position',{online:false}).then(loadDriver); notify('Sin ubicación: te pusimos en descanso. Abre la app y permite GPS.','err'); }, {enableHighAccuracy:true,timeout:15000,maximumAge:0});
-      return hasOrder;
-    };
-    let timer:ReturnType<typeof setTimeout>;
-    const loop = async () => {const hasOrder=await update();if(active)timer=setTimeout(loop,hasOrder?15000:120000);};
-    loop();
-    return () => {active=false;clearTimeout(timer);};
-  },[sb,driver?.is_online,loadDriver]);
-
   const setOnline = async (online: boolean) => {
     if (!sb) return;
     unlockAudio();
     setToggling(true);
     try {
-      if (online) {
-        if (!navigator.geolocation) throw new Error('Necesitas ubicación para estar disponible.');
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
-        await apiFetch(sb,'/api/driver-position',{online:true,point:{lat:pos.coords.latitude,lng:pos.coords.longitude}});
-      } else await apiFetch(sb,'/api/driver-position',{online:false});
+      await apiFetch(sb,'/api/driver-position',{online});
       await loadDriver();
-    } catch (e:any) { setToggling(false); return notify(e.message || 'Permite ubicación y mantén la app abierta.','err'); }
+    } catch (e:any) { setToggling(false); return notify(e.message || 'Revisa tu conexión e intenta de nuevo.','err'); }
     setToggling(false);
     seen.current = null;
     notify(online ? '¡Estás disponible! Te avisaremos de cada pedido.' : 'Descansa. No recibirás pedidos.');
@@ -221,7 +198,7 @@ export default function RepartidorPage() {
           <PushCard sb={sb} userId={session.user.id} text="Te avisaremos con sonido cada vez que alguien pida un delivery, aunque tengas la app cerrada." onError={(m) => notify(m, 'err')} />
         )}
 
-        {approved && tab === 'pedidos' && <><p className="card p-3 text-sm">Usamos tu ubicación para avisarte pedidos cercanos y mostrar al cliente por dónde vienes. Mantén la app abierta. Sin permiso GPS no puedes estar disponible. En iPhone, permite ubicación para este sitio.</p><OrdersBoard sb={sb} role="delivery" /></>}
+        {approved && tab === 'pedidos' && <><p className="card p-3 text-sm">Revisa las direcciones en Google Maps antes de aceptar. Los pedidos nuevos se pagan al recibir; confirma el pago del delivery en tu banco antes de cerrar la entrega.</p><OrdersBoard sb={sb} role="delivery" /></>}
         <details><summary>Pedidos anteriores por WhatsApp</summary>
         {/* ---------- PEDIDOS ANTERIORES ---------- */}
         {tab === 'pedidos' &&

@@ -56,14 +56,11 @@ function LegalButton({ missing, onClick }: { missing: string[] | null; onClick: 
   );
 }
 
-const confirmApproval = (name: string, missing: string[] | null) =>
-  missing && missing.length === 0
-    ? true
-    : confirm(
-        missing
-          ? `A ${name} le falta: ${missing.join(', ')}.\n\n¿Aprobar de todas formas?`
-          : `${name} todavía no tiene datos legales ni documentos.\n\n¿Aprobar de todas formas?`
-      );
+const confirmApproval = (name: string, missing: string[] | null) => {
+  if(missing && missing.length===0) return true;
+  alert(`${name} no puede aprobarse todavía. Completa y revisa: ${missing?.join(', ') || 'datos legales y documentos'}.`);
+  return false;
+};
 
 type Tab = 'resumen' | 'comercios' | 'repartidores' | 'pedidos' | 'ajustes';
 type Order = DeliveryRequest & { merchant: { name: string } | null; driver: { full_name: string } | null };

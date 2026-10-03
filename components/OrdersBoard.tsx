@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { apiFetch } from "@/lib/auth";
 import { ORDER_LABEL, type AppOrder } from "@/lib/orders";
-import DeliveryMap from "./DeliveryMap";
+import AddressLinks from "./AddressLinks";
+import VoiceNote from "./VoiceNote";
+import AudioMessage from "./AudioMessage";
 import { playChime, unlockAudio } from "@/lib/sound";
 import { waLink } from "@/lib/delivery";
 export async function uploadOrderPhoto(
@@ -132,10 +134,12 @@ export default function OrdersBoard({
             {o.available ? (
               <>
                 <p>
-                  {o.sector || "Dentro de Lagunillas"} ·{" "}
-                  {Number(o.distance_km).toFixed(1)} km comercio → cliente
+                  {o.sector || "Lagunillas"} · {o.address}
                 </p>
-                <p className="text-xs">{o.approach_km != null ? `Estás a ${Number(o.approach_km).toFixed(1)} km del comercio en línea recta. Este tramo no se cobra al cliente.` : 'Actualiza tu ubicación para ver tu acercamiento al comercio.'}</p>
+                <p className="text-sm">
+                  Revisa el acceso antes de aceptar. Los pedidos nuevos se pagan
+                  al llegar.
+                </p>
                 <p>
                   Delivery ${Number(o.delivery_fee).toFixed(2)} · comisión $
                   {Math.floor(
@@ -150,14 +154,14 @@ export default function OrdersBoard({
                       100
                   ).toFixed(2)}
                 </p>
-                <DeliveryMap
-                  point={null}
-                  route={o.route_geometry}
-                  markers={[
-                    { point: o.origin, label: "Comercio" },
-                    { point: o.destination, label: "Destino" },
-                    ...(o.driver_point ? [{point:o.driver_point,label:'Tu ubicación'}] : []),
-                  ]}
+                <AddressLinks
+                  address={o.merchant_address || o.merchant?.address || ""}
+                  navigate
+                />
+                <AddressLinks
+                  address={o.address || ""}
+                  sector={o.sector}
+                  navigate
                 />
                 <button
                   className="btn-primary"
@@ -222,10 +226,16 @@ function OrderDetails({
     [bank, setBank] = useState(""),
     [amount, setAmount] = useState(""),
     [file, setFile] = useState<File | null>(null),
+    [inPerson, setInPerson] = useState(false),
     [text, setText] = useState(""),
     [photo, setPhoto] = useState<File | null>(null),
+    [audio, setAudio] = useState<File | null>(null),
     [channel, setChannel] = useState(
-      role === "delivery" ? "driver" : "merchant",
+      role === "admin"
+        ? "support"
+        : role === "delivery"
+          ? "driver"
+          : "merchant",
     );
   const load = useCallback(async () => {
     try {
@@ -260,8 +270,10 @@ function OrderDetails({
     try {
       await apiFetch(sb, `/api/orders/${id}`, { action, ...data });
       await load();
+      return true;
     } catch (e: any) {
       setError(e.message);
+      return false;
     } finally {
       setBusy(false);
     }
@@ -290,24 +302,25 @@ function OrderDetails({
       o.state === "disputed" &&
       o.delivery_paid &&
       !o.delivery_refunded);
-  const canMerchantChat =
-    o.state !== "merchant_pending" &&
-    !["picked_up", "delivered", "cancelled", "disputed"].includes(o.state);
-  const canDriverChat =
-    o.delivery_paid &&
-    !["cancelled", "disputed"].includes(o.state) &&
-    (o.state !== "delivered" ||
-      (!!o.delivered_at && Date.now() - Date.parse(o.delivered_at) < 7200000));
+  const recent =
+    !!o.delivered_at && Date.now() - Date.parse(o.delivered_at) < 48 * 3600000;
+  const open = !["cancelled", "delivered"].includes(o.state) || recent;
   const chatChannels = customer
-    ? ["merchant", "driver"]
+    ? [
+        "merchant",
+        ...(o.driver_id ? ["driver"] : []),
+        ...(o.state === "disputed" ? ["support"] : []),
+      ]
     : merchant
-      ? ["merchant"]
+      ? ["merchant", ...(o.state === "disputed" ? ["support"] : [])]
       : driver
-        ? ["driver"]
-        : ["merchant", "driver"];
+        ? ["driver", ...(o.state === "disputed" ? ["support"] : [])]
+        : ["support"];
   const canChat =
-    (channel === "merchant" ? canMerchantChat : canDriverChat) &&
-    role !== "admin";
+    role === "admin"
+      ? o.state === "disputed" && channel === "support"
+      : open && chatChannels.includes(channel);
+  const cod = o.payment_mode === "on_receipt";
   return (
     <section className="space-y-4">
       <button className="btn-ghost" onClick={onBack}>
@@ -349,14 +362,33 @@ function OrderDetails({
         </p>
         {o.fulfillment === "delivery" && (
           <p className="text-sm">
-            {Number(o.distance_km).toFixed(2)} km ·{" "}
-            {o.distance_method === "road"
-              ? "ruta por carretera"
-              : "distancia estimada; línea recta × factor"}
-            .
+            {o.distance_method === "fixed"
+              ? "Tarifa fija acordada antes de pedir."
+              : "Pedido anterior: conserva su tarifa original."}
           </p>
         )}
+        {cod && (
+          <p className="rounded-xl bg-laguna-100 p-3">
+            Pago al recibir: productos al comercio y delivery al repartidor.
+            Confirma el importe, paga solo con el pedido presente y comparte el
+            código al recibir el paquete.
+          </p>
+        )}
+        <p>{o.merchant_address || o.merchant?.address}</p>
+        <AddressLinks
+          address={o.merchant_address || o.merchant?.address || ""}
+          navigate
+        />
         <p>{o.address}</p>
+        {o.fulfillment === "delivery" && (
+          <AddressLinks address={o.address} sector={o.sector} navigate />
+        )}
+        {merchant && cod && o.pickup_code && (
+          <p className="font-bold">
+            Código de recogida: {o.pickup_code}. Dáselo al repartidor asignado
+            al entregarle el paquete.
+          </p>
+        )}
         {customer && o.delivery_code && (
           <p className="font-bold">
             Código de entrega: {o.delivery_code}. Dilo cuando recibas el pedido.
@@ -395,27 +427,6 @@ function OrderDetails({
           </a>
         )}
       </div>
-      {o.destination && (
-        <DeliveryMap
-          point={o.destination}
-          route={o.route_geometry}
-          markers={[
-            { point: o.origin, label: "Comercio" },
-            ...(o.driver_position
-              ? [{ point: o.driver_position.point, label: "Repartidor" }]
-              : []),
-          ]}
-        />
-      )}{" "}
-      {o.driver_position && (
-        <p className="text-xs">
-          Última ubicación:{" "}
-          {new Date(o.driver_position.updated_at).toLocaleTimeString("es-VE")}.{" "}
-          {Date.now() - Date.parse(o.driver_position.updated_at) > 45000
-            ? "Ubicación desactualizada: el repartidor debe abrir la app."
-            : ""}
-        </p>
-      )}
       {merchant && o.state === "merchant_pending" && (
         <>
           {button("accept", "Aceptar pedido")}
@@ -498,8 +509,24 @@ function OrderDetails({
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
           </label>
+          {cod && customer && (
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={inPerson}
+                onChange={(e) => setInPerson(e.target.checked)}
+              />
+              Tengo el pedido presente y estoy realizando el pago al recibir, no
+              por adelantado.
+            </label>
+          )}
           <button
-            disabled={busy || !file || reference.length !== 5}
+            disabled={
+              busy ||
+              !file ||
+              reference.length !== 5 ||
+              (cod && customer && !inPerson)
+            }
             className="btn-primary w-full"
             onClick={async () => {
               setBusy(true);
@@ -510,6 +537,7 @@ function OrderDetails({
                   reference,
                   bank,
                   amount: Number(amount),
+                  in_person: inPerson,
                 });
               } catch (e: any) {
                 setError(e.message);
@@ -570,7 +598,7 @@ function OrderDetails({
         </div>
       ))}
       {merchant &&
-        o.products_paid &&
+        (o.products_paid || cod) &&
         !o.ready &&
         [
           "searching",
@@ -582,9 +610,37 @@ function OrderDetails({
       {driver &&
         o.state === "preparing" &&
         o.ready &&
-        button("picked_up", "Recogido en el comercio")}
-      {((driver && o.state === "picked_up") ||
-        (merchant && o.state === "pickup_ready")) && (
+        (cod ? (
+          <>
+            <label className="block">
+              Código de recogida del comercio
+              <input
+                className="input"
+                inputMode="numeric"
+                maxLength={4}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              />
+            </label>
+            {button("picked_up", "Confirmar recogida", { code })}
+          </>
+        ) : (
+          button("picked_up", "Recogido en el comercio")
+        ))}
+      {cod &&
+        driver &&
+        o.state === "picked_up" &&
+        button("arrived", "Estoy con el cliente: habilitar pago al recibir")}
+      {cod &&
+        customer &&
+        o.state === "pickup_ready" &&
+        button("begin_payment", "Estoy en el local: pagar y retirar")}
+      {((driver &&
+        (cod ? o.state === "awaiting_handover" : o.state === "picked_up")) ||
+        (merchant &&
+          (cod
+            ? o.state === "awaiting_handover"
+            : o.state === "pickup_ready"))) && (
         <>
           <label className="block">
             Código de 4 dígitos del cliente
@@ -620,7 +676,7 @@ function OrderDetails({
           </div>
         </div>
       )}
-      {!["cancelled", "delivered"].includes(o.state) && (
+      {o.state !== "cancelled" && (o.state !== "delivered" || recent) && (
         <div className="space-y-2">
           <label className="block">
             Motivo de cancelación o reclamo
@@ -630,7 +686,7 @@ function OrderDetails({
               onChange={(e) => setReason(e.target.value)}
             />
           </label>
-          {customer &&
+          {(customer || merchant || driver || role === "admin") &&
             o.state !== "disputed" &&
             button(
               "dispute",
@@ -639,7 +695,8 @@ function OrderDetails({
                 : "Abrir reclamo",
               { reason },
             )}
-          {(role === "admin" || merchant || (customer && !o.products_paid)) &&
+          {o.state !== "delivered" &&
+            (role === "admin" || merchant || driver || customer) &&
             button("cancel", "Cancelar pedido / solicitar devolución", {
               reason,
             })}
@@ -650,6 +707,37 @@ function OrderDetails({
             o.fulfillment === "delivery" &&
             !o.delivery_paid &&
             button("reassign", "Liberar y buscar otro repartidor")}
+          {cod &&
+            o.state === "disputed" &&
+            driver &&
+            o.collected_at &&
+            !o.delivered_at &&
+            !o.returned_by_driver &&
+            button("return_sent", "Devolví el paquete al comercio")}
+          {cod &&
+            o.state === "disputed" &&
+            merchant &&
+            o.returned_by_driver &&
+            !o.returned_to_merchant &&
+            button("return_received", "Recibí el paquete devuelto")}
+          {cod &&
+            o.state === "disputed" &&
+            role === "admin" &&
+            o.collected_at &&
+            !o.delivered_at &&
+            button(
+              "record_loss",
+              "Registrar pérdida del paquete con resolución documentada",
+              { reason },
+            )}
+          {cod &&
+            o.state === "disputed" &&
+            role === "admin" &&
+            button(
+              "close_cancel",
+              "Cerrar cancelación tras revisar pagos y devolución",
+              { reason },
+            )}
         </div>
       )}
       {role === "admin" && o.state === "disputed" && (
@@ -704,7 +792,9 @@ function OrderDetails({
               <option key={ch} value={ch}>
                 {ch === "merchant"
                   ? "Cliente ↔ comercio"
-                  : "Cliente ↔ repartidor"}
+                  : ch === "driver"
+                    ? "Cliente ↔ repartidor"
+                    : "Soporte y participantes"}
               </option>
             ))}
           </select>
@@ -712,6 +802,9 @@ function OrderDetails({
             ?.filter((m) => m.channel === channel)
             .map((m) => (
               <div className="rounded-xl bg-cal-100 p-3" key={m.id}>
+                <p className="text-xs font-bold">
+                  {(m as any).sender_label || "Participante"}
+                </p>
                 <p>{m.text}</p>
                 {m.image_url && (
                   <a href={m.image_url} target="_blank" rel="noreferrer">
@@ -722,6 +815,7 @@ function OrderDetails({
                     />
                   </a>
                 )}
+                {m.audio_url && <AudioMessage url={m.audio_url} />}
                 <p className="text-xs">
                   {new Date(m.created_at).toLocaleTimeString("es-VE")}
                 </p>
@@ -763,8 +857,33 @@ function OrderDetails({
                   onChange={(e) => setPhoto(e.target.files?.[0] || null)}
                 />
               </label>
+              <VoiceNote disabled={busy} onReady={setAudio} />
+              <label className="block">
+                Adjuntar audio (hasta 8 MB)
+                <input
+                  type="file"
+                  accept="audio/webm,audio/ogg,audio/mpeg,audio/mp4"
+                  onChange={(e) => setAudio(e.target.files?.[0] || null)}
+                />
+              </label>
+              {audio && (
+                <div className="flex gap-2">
+                  <p>Audio listo: {audio.name}</p>
+                  <button
+                    className="btn-ghost"
+                    disabled={busy}
+                    onClick={() => setAudio(null)}
+                  >
+                    Quitar audio
+                  </button>
+                </div>
+              )}
+              <p className="text-xs">
+                Enviar mensajes o capturas en el chat no confirma pagos. Usa el
+                formulario de comprobante y revisa el banco.
+              </p>
               <button
-                disabled={busy || (!text && !photo)}
+                disabled={busy || (!text && !photo && !audio)}
                 className="btn-primary"
                 onClick={async () => {
                   setBusy(true);
@@ -772,9 +891,20 @@ function OrderDetails({
                     const image_path = photo
                       ? await uploadOrderPhoto(sb, id, photo)
                       : undefined;
-                    await act("message", { channel, text, image_path });
-                    setText("");
-                    setPhoto(null);
+                    const audio_path = audio
+                      ? await uploadOrderPhoto(sb, id, audio)
+                      : undefined;
+                    const sent = await act("message", {
+                      channel,
+                      text,
+                      image_path,
+                      audio_path,
+                    });
+                    if (sent) {
+                      setText("");
+                      setPhoto(null);
+                      setAudio(null);
+                    }
                   } catch (e: any) {
                     setError(e.message);
                     setBusy(false);

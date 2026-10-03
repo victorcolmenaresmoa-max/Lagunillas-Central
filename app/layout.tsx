@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/plus-jakarta-sans';
 import '@fontsource-variable/fraunces/full.css';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
-import 'leaflet/dist/leaflet.css';
+
 import './globals.css';
 
 export const metadata: Metadata = {
