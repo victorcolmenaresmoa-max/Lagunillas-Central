@@ -19,7 +19,7 @@ export default function OrderCheckout({
   onQty: (id: string, d: number) => void;
   [key: string]: any;
 }) {
-  const { session, supabase: sb, loading } = useAuth();
+  const { session, profile, supabase: sb, loading } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([]),
     [addressId, setAddressId] = useState(""),
     [mode, setMode] = useState("delivery"),
@@ -28,17 +28,17 @@ export default function OrderCheckout({
     [busy, setBusy] = useState(false);
   const total = items.reduce((s, i) => s + i.qty * i.price, 0);
   useEffect(() => {
-    if (!sb || !session) return;
+    if (!sb || !session || profile?.role !== 'client') return;
     apiFetch(sb, "/api/order-profile")
       .then((d) => {
         setAddresses(d.addresses);
         setAddressId(d.addresses[0]?.id || "");
       })
       .catch((e) => setError(e.message));
-  }, [sb, session]);
+  }, [sb, session, profile]);
   useEffect(() => {
     setQuote(null);
-    if (!sb || !session || (mode === "delivery" && !addressId)) return;
+    if (!sb || !session || profile?.role !== 'client' || (mode === "delivery" && !addressId)) return;
     let active = true;
     apiFetch(sb, "/api/orders/quote", {
       merchant_id: merchant.id,
@@ -55,7 +55,7 @@ export default function OrderCheckout({
     return () => {
       active = false;
     };
-  }, [sb, session, mode, addressId, merchant.id]);
+  }, [sb, session, profile, mode, addressId, merchant.id]);
   const send = async () => {
     if (!sb || !quote) return;
     setBusy(true);
@@ -86,6 +86,9 @@ export default function OrderCheckout({
     } finally {
       setBusy(false);
     }
+  };
+  const saveCart = () => {
+    try { sessionStorage.setItem(`lc-checkout-${merchant.id}`, JSON.stringify({ items: items.map(i => ({ product_id: i.product.id, qty: i.qty })), expires: Date.now() + 86400000 })); } catch {}
   };
   const wa = waLink(
     merchant.whatsapp_number,
@@ -155,20 +158,21 @@ export default function OrderCheckout({
         </label>
         {loading ? (
           <p>Cargando tu cuenta…</p>
-        ) : !session ? (
+        ) : !session || profile?.role !== 'client' ? (
           <div className="card space-y-2 p-4">
             <p>
-              Para pedir y pagar dentro de la app necesitas una cuenta con
-              correo confirmado.
+              Compra con confianza. Inicia sesión para confirmar tus pagos y seguir tu delivery hasta la entrega.
             </p>
+            {session && <p className="text-sm">Tienes abierta una cuenta de trabajo. Usa una cuenta de comprador para hacer este pedido.</p>}
             <Link
               className="btn-primary w-full"
+              onClick={saveCart}
               href={`/entrar?next=${encodeURIComponent("/comercio/" + merchant.slug)}`}
             >
               Iniciar sesión
             </Link>
-            <Link className="btn-ghost w-full" href="/registro/cliente">
-              Crear cuenta de cliente
+            <Link onClick={saveCart} className="btn-ghost w-full" href={`/registro/cliente?next=${encodeURIComponent("/comercio/" + merchant.slug)}`}>
+              Crear mi cuenta para comprar
             </Link>
           </div>
         ) : (

@@ -183,7 +183,7 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
               <Store size={36} className="text-laguna-500" />
               <p className="heading mt-3 text-xl">Muy pronto, los comercios del pueblo</p>
               <p className="mt-1 text-sm text-tinta-500">Estamos sumando a los negocios de Lagunillas. ¿Tienes uno?</p>
-              <Link href="/registro?tipo=comercio" className="btn-primary mt-4 text-sm">
+              <Link href="/aliados/registro?tipo=comercio" className="btn-primary mt-4 text-sm">
                 Registra tu comercio
               </Link>
             </div>
@@ -218,10 +218,10 @@ export default function HomeClient({ merchants, deals }: { merchants: Merchant[]
           <Landscape variant="ocaso" position="center 50%" className="absolute inset-0" />
           <div className="absolute inset-0 bg-ocaso-800/55" />
           <div className="relative px-5 py-6 text-center">
-            <p className="heading text-xl text-white">¿Tienes un negocio en Lagunillas?</p>
-            <p className="mt-1 text-sm text-white/85">Que todo el pueblo te encuentre y te pida por WhatsApp.</p>
-            <Link href="/registro" className="mt-4 inline-flex items-center gap-1.5 rounded-2xl bg-cal-50 px-4 py-2.5 text-sm font-bold text-ocaso-600 shadow-lift active:scale-95">
-              Súmate aquí <ChevronRight size={16} />
+            <p className="heading text-xl text-white">¿Quieres trabajar con Lagunillas Central?</p>
+            <p className="mt-1 text-sm text-white/85">Un espacio para registrar tu comercio o ser repartidor.</p>
+            <Link href="/aliados" className="mt-4 inline-flex items-center gap-1.5 rounded-2xl bg-cal-50 px-4 py-2.5 text-sm font-bold text-ocaso-600 shadow-lift active:scale-95">
+              Comercios y repartidores <ChevronRight size={16} />
             </Link>
           </div>
         </footer>

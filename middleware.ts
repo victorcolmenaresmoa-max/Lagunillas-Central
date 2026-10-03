@@ -22,6 +22,7 @@ export async function middleware(req: NextRequest) {
   if (!session && isPrivate) {
     const to = new URL('/entrar', req.url);
     to.searchParams.set('next', path);
+    if (['/panel', '/repartidor', '/admin'].some(p => path === p || path.startsWith(p + '/'))) to.searchParams.set('acceso', 'negocio');
     return NextResponse.redirect(to);
   }
   return res;

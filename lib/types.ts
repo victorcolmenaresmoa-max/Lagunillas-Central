@@ -1,6 +1,6 @@
 export type Role = 'admin' | 'merchant' | 'delivery' | 'client';
 
-export const CATEGORIES = ['Comida', 'Bodegones', 'Farmacias', 'Repuestos', 'Servicios', 'Barberías'] as const;
+export const CATEGORIES = ['Comida', 'Bodegones', 'Supermercados', 'Abastos', 'Panaderías', 'Pastelerías', 'Cafeterías', 'Fruterías y verduras', 'Carnicerías', 'Licorerías', 'Farmacias', 'Ferreterías', 'Repuestos', 'Tecnología', 'Ropa y calzado', 'Belleza y cosméticos', 'Barberías', 'Papelerías', 'Hogar y muebles', 'Mascotas', 'Servicios', 'Otros comercios'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export type PlanId = 'gratis' | 'pro' | 'premium';

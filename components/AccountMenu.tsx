@@ -43,7 +43,7 @@ export default function AccountMenu() {
           href={homeForRole(role)}
           className="flex h-10 items-center gap-1.5 rounded-2xl bg-white/25 px-3 text-xs font-bold text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-95"
         >
-          <LayoutDashboard size={16} /> Mi panel
+          <LayoutDashboard size={16} /> {role === 'client' ? 'Mis pedidos' : 'Mi panel'}
         </Link>
       ) : (
         <button
@@ -82,9 +82,7 @@ export default function AccountMenu() {
             <div className="space-y-2.5 pb-5">
               {(
                 [
-                  ['/registro/cliente', ShoppingBag, 'Soy cliente', 'Direcciones, pagos y seguimiento de pedidos', 'bg-cielo-100 text-cielo-600'],
-                  ['/registro?tipo=comercio', Store, 'Registrar mi comercio', 'Vende en la app y recibe pedidos', 'bg-teja-100 text-teja-600'],
-                  ['/registro?tipo=repartidor', Bike, 'Quiero ser repartidor', 'Gana haciendo entregas en el pueblo', 'bg-laguna-100 text-laguna-600'],
+                  ['/registro/cliente', ShoppingBag, 'Crear mi cuenta para comprar', 'Direcciones, pagos y seguimiento de pedidos', 'bg-cielo-100 text-cielo-600'],
                 ] as const
               ).map(([href, Icon, title, text, tone]) => (
                 <Link key={href} href={href} onClick={() => setOpen(false)} className="card flex items-center gap-3 p-3.5 transition active:scale-[0.98]">

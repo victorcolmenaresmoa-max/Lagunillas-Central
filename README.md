@@ -63,6 +63,8 @@ Ver [pedidos y cobertura](docs/pedidos-y-cobertura.md) para activar la migració
 
 `npm run test:orders` ejecuta las pruebas locales de PostgreSQL embebido, sin tocar Supabase.
 
+El acceso de compradores está en `/entrar` y `/registro/cliente`. Los registros de comercios y repartidores están en `/aliados`. Ver [acceso de compradores y categorías](docs/acceso-compradores.md); para actualizar una base existente, aplicar `migrations/20261003_buyer_access_categories.sql` después de la migración de pedidos. `npm run test:buyer` comprueba el retorno a la compra y el registro de las 22 categorías en PostgreSQL local.
+
 ## Puesta en marcha (paso a paso)
 
 ### Paso 1 · Crear la base de datos en Supabase

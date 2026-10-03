@@ -61,7 +61,7 @@ alter table public.merchants drop constraint if exists merchants_plan_check;
 alter table public.merchants add constraint merchants_plan_check check (plan in ('gratis', 'pro', 'premium'));
 alter table public.merchants drop constraint if exists merchants_category_check;
 alter table public.merchants add constraint merchants_category_check
-  check (category in ('Comida','Bodegones','Farmacias','Repuestos','Servicios','Barberías'));
+  check (category in ('Comida','Bodegones','Supermercados','Abastos','Panaderías','Pastelerías','Cafeterías','Fruterías y verduras','Carnicerías','Licorerías','Farmacias','Ferreterías','Repuestos','Tecnología','Ropa y calzado','Belleza y cosméticos','Barberías','Papelerías','Hogar y muebles','Mascotas','Servicios','Otros comercios'));
 create index if not exists merchants_category_idx on public.merchants (category);
 create index if not exists merchants_user_idx on public.merchants (user_id);
 create index if not exists merchants_status_idx on public.merchants (status);
@@ -247,7 +247,7 @@ begin
 
   if r = 'merchant' and biz is not null and coalesce(biz ->> 'name', '') <> '' then
     cat := biz ->> 'category';
-    if cat not in ('Comida','Bodegones','Farmacias','Repuestos','Servicios','Barberías') then cat := 'Servicios'; end if;
+    if cat is null or cat not in ('Comida','Bodegones','Supermercados','Abastos','Panaderías','Pastelerías','Cafeterías','Fruterías y verduras','Carnicerías','Licorerías','Farmacias','Ferreterías','Repuestos','Tecnología','Ropa y calzado','Belleza y cosméticos','Barberías','Papelerías','Hogar y muebles','Mascotas','Servicios','Otros comercios') then cat := 'Servicios'; end if;
     insert into public.merchants (user_id, name, slug, category, whatsapp_number, description, address, opens_at, closes_at, status, plan)
     values (
       new.id,

@@ -47,7 +47,7 @@ export function useAuth(role?: Role): AuthState {
 
     const load = async (session: Session | null) => {
       if (!session) {
-        if (role) router.replace(`/entrar?next=${encodeURIComponent(window.location.pathname)}`);
+        if (role) router.replace(`/entrar?${role === 'client' ? '' : 'acceso=negocio&'}next=${encodeURIComponent(window.location.pathname)}`);
         if (!cancelled) setState({ loading: false, session: null, profile: null, supabase: sb });
         return;
       }

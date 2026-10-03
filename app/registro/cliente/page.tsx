@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AuthShell,
   TextField,
@@ -9,12 +9,15 @@ import {
   passwordOk,
   isEmail,
 } from "@/components/auth";
+import { buyerReturnPath } from "@/lib/buyer-navigation";
 import VerifyEmail from "@/components/VerifyEmail";
 import { getBrowserClient } from "@/lib/supabase-browser";
 import { isValidPhone, normalizePhone } from "@/lib/validate";
 import { TERMS_VERSION } from "@/lib/legal";
-export default function ClientSignup() {
+function ClientSignup() {
   const router = useRouter();
+  const params = useSearchParams();
+  const returnTo = buyerReturnPath(params.get("next"));
   const [name, setName] = useState(""),
     [phone, setPhone] = useState(""),
     [email, setEmail] = useState(""),
@@ -43,7 +46,7 @@ export default function ClientSignup() {
       email: email.trim().toLowerCase(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/mi-cuenta`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
         data: {
           signup_role: "client",
           full_name: name.trim(),
@@ -54,19 +57,23 @@ export default function ClientSignup() {
     });
     setBusy(false);
     if (error) return setError(error.message);
-    if (data.session) router.replace("/mi-cuenta");
+    if (data.session) router.replace(returnTo);
     else setVerify(true);
   };
   return (
     <AuthShell
       tab="registro"
-      title={verify ? "Confirma tu correo" : "Cuenta de cliente"}
-      subtitle="Nombre, teléfono y correo. Después guardas tu dirección en el mapa."
+      title={verify ? "Confirma tu correo" : "Empieza a comprar con confianza"}
+      loginHref={`/entrar?next=${encodeURIComponent(returnTo)}`}
+      registerHref={`/registro/cliente?next=${encodeURIComponent(returnTo)}`}
+      showTabs={!verify}
+      subtitle="Crea tu cuenta para guardar direcciones, confirmar pagos y seguir tus compras en Lagunillas."
     >
       {verify ? (
         <VerifyEmail
+          next={returnTo}
           email={email.trim().toLowerCase()}
-          onVerified={() => router.replace("/mi-cuenta")}
+          onVerified={() => router.replace(returnTo)}
         />
       ) : (
         <form onSubmit={submit} className="space-y-4">
@@ -116,10 +123,12 @@ export default function ClientSignup() {
           </label>
           {error && <p role="alert">{error}</p>}
           <button className="btn-primary w-full" disabled={busy}>
-            {busy ? "Creando…" : "Crear cuenta"}
+            {busy ? "Creando…" : "Crear mi cuenta para comprar"}
           </button>
         </form>
       )}
     </AuthShell>
   );
 }
+
+export default function ClientSignupPage() { return <Suspense><ClientSignup /></Suspense>; }

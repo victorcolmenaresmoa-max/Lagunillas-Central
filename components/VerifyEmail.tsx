@@ -10,7 +10,7 @@ import { friendlyError } from '@/lib/errors';
  * Confirmar el correo con el código (cuando Supabase exige confirmación).
  * Se usa al crear cuenta y al intentar entrar con una cuenta sin confirmar.
  */
-export default function VerifyEmail({ email, onVerified, onChangeEmail }: { email: string; onVerified: (userId: string) => void; onChangeEmail?: () => void }) {
+export default function VerifyEmail({ email, onVerified, onChangeEmail, next = '/entrar' }: { email: string; onVerified: (userId: string) => void; onChangeEmail?: () => void; next?: string }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export default function VerifyEmail({ email, onVerified, onChangeEmail }: { emai
         <ResendButton
           onResend={async () => {
             const sb = getBrowserClient()!;
-            const { error } = await sb.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/entrar` } });
+            const { error } = await sb.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` } });
             if (error) setError(friendlyError(error));
             else setInfo('Listo, te enviamos un código nuevo.');
           }}

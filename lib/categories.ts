@@ -23,7 +23,7 @@ export interface CategoryStyle {
 export const ALL_CATEGORY = { label: 'Todos', icon: LayoutGrid } as const;
 
 // Colores tomados del pueblo: tejas, iglesia ocre, laguna, cielo, cerros y vino
-export const CATEGORY_STYLES: Record<Category, CategoryStyle> = {
+const BASE_STYLES = {
   Comida: {
     icon: UtensilsCrossed,
     gradient: 'from-ocaso-400 to-teja-500',
@@ -60,6 +60,26 @@ export const CATEGORY_STYLES: Record<Category, CategoryStyle> = {
     chip: 'text-[#8a3b52] border-[#b9657a]/30 bg-[#f6e3e7]',
     sky: '#c07a8a',
   },
+};
+
+export const CATEGORY_STYLES: Record<Category, CategoryStyle> = {
+  ...BASE_STYLES,
+  'Supermercados': { ...BASE_STYLES.Bodegones },
+  'Abastos': { ...BASE_STYLES.Bodegones },
+  'Panaderías': { ...BASE_STYLES.Comida },
+  'Pastelerías': { ...BASE_STYLES.Comida },
+  'Cafeterías': { ...BASE_STYLES.Comida },
+  'Fruterías y verduras': { ...BASE_STYLES.Bodegones },
+  'Carnicerías': { ...BASE_STYLES.Comida },
+  'Licorerías': { ...BASE_STYLES.Bodegones },
+  'Ferreterías': { ...BASE_STYLES.Repuestos },
+  'Tecnología': { ...BASE_STYLES.Repuestos },
+  'Ropa y calzado': { ...BASE_STYLES.Barberías },
+  'Belleza y cosméticos': { ...BASE_STYLES.Barberías },
+  'Papelerías': { ...BASE_STYLES.Repuestos },
+  'Hogar y muebles': { ...BASE_STYLES.Repuestos },
+  'Mascotas': { ...BASE_STYLES.Servicios },
+  'Otros comercios': { ...BASE_STYLES.Bodegones },
 };
 
 export function styleFor(category: string): CategoryStyle {

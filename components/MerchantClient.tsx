@@ -93,11 +93,16 @@ export default function MerchantClient({
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('lc-repeat') || 'null');
-      if (saved?.merchant_id !== m.id) return;
+      const checkout = JSON.parse(sessionStorage.getItem(`lc-checkout-${m.id}`) || 'null');
+      const repeat = JSON.parse(localStorage.getItem('lc-repeat') || 'null');
+      const fromCheckout = checkout?.expires > Date.now();
+      const saved = fromCheckout ? checkout : repeat;
+      if (!fromCheckout && saved?.merchant_id !== m.id) return;
       const next: Record<string, number> = {};
       for (const i of saved.items || []) if (products.some(p => p.id === i.product_id && p.is_available)) next[i.product_id] = Math.max(1, Math.min(99, Number(i.qty) || 1));
-      setCart(next); localStorage.removeItem('lc-repeat');
+      setCart(next);
+      if (fromCheckout) { setSheet(true); sessionStorage.removeItem(`lc-checkout-${m.id}`); }
+      else localStorage.removeItem('lc-repeat');
     } catch {}
   }, [m.id, products]);
 

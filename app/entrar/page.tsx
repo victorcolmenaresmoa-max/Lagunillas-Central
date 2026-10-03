@@ -3,18 +3,22 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Lock, Mail, Store, Bike } from 'lucide-react';
+import { Loader2, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { AuthShell, Divider, FormAlert, NoAccountNeeded, PasswordField, TextField, emailSuggestion, isEmail } from '@/components/auth';
 import VerifyEmail from '@/components/VerifyEmail';
 import { getBrowserClient } from '@/lib/supabase-browser';
 import { homeForRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
+import { buyerReturnPath } from '@/lib/buyer-navigation';
 import type { Role } from '@/lib/types';
 
 function Login() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get('next');
+  const business = params.get('acceso') === 'negocio';
+  const returnTo = buyerReturnPath(next);
+  const signupHref = business ? '/aliados/registro' : `/registro/cliente?next=${encodeURIComponent(returnTo)}`;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -32,8 +36,14 @@ function Login() {
   const go = async (userId: string) => {
     const sb = getBrowserClient()!;
     const { data } = await sb.from('profiles').select('role').eq('user_id', userId).maybeSingle();
+    if (!business && data?.role !== 'client') {
+      setChecking(false);
+      setLoading(false);
+      setFormError('Esta cuenta tiene un panel de trabajo. Para comprar, usa una cuenta de comprador.');
+      return;
+    }
     const home = homeForRole(data?.role as Role);
-    router.replace(next && next.startsWith('/') && !next.startsWith('//') && (next.startsWith(home) || data?.role === 'client' && /^\/(comercio\/|mi-cuenta|mis-pedidos)/.test(next)) ? next : home);
+    router.replace(!business ? returnTo : next && next.startsWith('/') && !next.startsWith('//') && (next.startsWith(home) || data?.role === 'client' && /^\/(comercio\/|mi-cuenta|mis-pedidos)/.test(next)) ? next : home);
     router.refresh();
   };
 
@@ -72,7 +82,7 @@ function Login() {
     if (error) {
       setLoading(false);
       if (/Email not confirmed/i.test(error.message)) {
-        await sb.auth.resend({ type: 'signup', email: clean }).catch(() => {});
+        await sb.auth.resend({ type: 'signup', email: clean, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(business ? '/entrar?acceso=negocio' : returnTo)}` } }).catch(() => {});
         return setUnconfirmed(true);
       }
       if (/Invalid login credentials/i.test(error.message)) {
@@ -91,7 +101,7 @@ function Login() {
   if (unconfirmed) {
     return (
       <AuthShell title="Confirma tu correo" subtitle="Tu cuenta existe, pero falta confirmar el correo." onBack={() => setUnconfirmed(false)} showTabs={false}>
-        <VerifyEmail email={email.trim().toLowerCase()} onVerified={go} onChangeEmail={() => setUnconfirmed(false)} />
+        <VerifyEmail next={business ? '/entrar?acceso=negocio' : returnTo} email={email.trim().toLowerCase()} onVerified={go} onChangeEmail={() => setUnconfirmed(false)} />
       </AuthShell>
     );
   }
@@ -101,9 +111,11 @@ function Login() {
   return (
     <AuthShell
       tab="entrar"
-      title="¡Hola de nuevo!"
-      subtitle="Inicia sesión para entrar a tu panel de comercio, repartidor o administración."
-      footer={<NoAccountNeeded />}
+      title={business ? "Entrar a mi panel" : "Compra con confianza"}
+      subtitle={business ? "Acceso para comercios, repartidores y administración." : "Guarda tus direcciones, confirma tus pagos y sigue tu pedido hasta la entrega."}
+      loginHref={business ? "/entrar?acceso=negocio" : `/entrar?next=${encodeURIComponent(returnTo)}`}
+      registerHref={signupHref}
+      footer={business ? undefined : <NoAccountNeeded />}
     >
       {checking ? (
         <div className="flex justify-center py-10">
@@ -155,7 +167,7 @@ function Login() {
                 </Link>
               }
             />
-            {formError && <FormAlert>{formError}</FormAlert>}
+            {formError && <FormAlert>{formError}{formError.startsWith("Esta cuenta") && <Link href="/entrar?acceso=negocio" className="mt-2 block font-bold underline">Entrar a mi panel de trabajo</Link>}</FormAlert>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base">
               {loading ? <Loader2 size={20} className="animate-spin" /> : 'Iniciar sesión'}
             </button>
@@ -163,23 +175,11 @@ function Login() {
 
           <Divider>¿No tienes cuenta?</Divider>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/registro?tipo=comercio" className="card flex flex-col items-center gap-2 p-4 text-center transition active:scale-[0.97]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teja-100 text-teja-600">
-                <Store size={21} />
-              </span>
-              <span className="text-sm font-bold leading-tight text-tinta-900">Registrar mi comercio</span>
-            </Link>
-            <Link href="/registro?tipo=repartidor" className="card flex flex-col items-center gap-2 p-4 text-center transition active:scale-[0.97]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-laguna-100 text-laguna-600">
-                <Bike size={21} />
-              </span>
-              <span className="text-sm font-bold leading-tight text-tinta-900">Quiero ser repartidor</span>
-            </Link>
-          </div>
-          <Link href="/registro" className="btn-ghost mt-3 w-full py-3">
-            Crear una cuenta
+          <Link href={signupHref} className="btn-primary w-full py-3.5">
+            {business ? 'Registrar comercio o repartidor' : 'Crear mi cuenta para comprar'}
           </Link>
+          {!business && <p className="mt-3 flex items-center justify-center gap-2 text-sm text-laguna-700"><ShieldCheck size={18} /> Tus direcciones y comprobantes son privados.</p>}
+
         </>
       )}
     </AuthShell>

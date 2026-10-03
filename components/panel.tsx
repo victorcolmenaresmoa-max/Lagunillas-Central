@@ -28,7 +28,7 @@ export function PanelHeader({
   const router = useRouter();
   const signOut = async () => {
     await sb?.auth.signOut();
-    router.replace('/entrar');
+    router.replace('/entrar?acceso=negocio');
     router.refresh();
   };
   return (

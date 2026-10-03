@@ -19,6 +19,8 @@ export function AuthShell({
   backHref = '/',
   showTabs = true,
   footer,
+  loginHref = '/entrar',
+  registerHref = '/registro/cliente',
 }: {
   tab?: 'entrar' | 'registro';
   title: string;
@@ -28,6 +30,8 @@ export function AuthShell({
   backHref?: string;
   showTabs?: boolean;
   footer?: ReactNode;
+  loginHref?: string;
+  registerHref?: string;
 }) {
   const backCls =
     'inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/30 text-white ring-1 ring-white/40 backdrop-blur-md transition active:scale-90';
@@ -59,8 +63,8 @@ export function AuthShell({
           <nav className="mb-5 grid animate-fade-up grid-cols-2 gap-1 rounded-2xl bg-cal-50/90 p-1 shadow-soft ring-1 ring-cal-200 backdrop-blur" aria-label="Acceso">
             {(
               [
-                ['entrar', 'Iniciar sesión', '/entrar'],
-                ['registro', 'Crear cuenta', '/registro'],
+                ['entrar', 'Iniciar sesión', loginHref],
+                ['registro', 'Crear cuenta', registerHref],
               ] as const
             ).map(([key, label, href]) => (
               <Link
