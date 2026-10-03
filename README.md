@@ -1,6 +1,6 @@
 # Lagunillas Central
 
-Plataforma hiperlocal para el municipio Lagunillas, Mérida. Los clientes piden a los comercios del pueblo por WhatsApp y pueden pedir un repartidor. Los repartidores reciben el aviso en el teléfono y los comercios administran su catálogo. Tú apruebas y administras todo.
+Plataforma hiperlocal para el Lagunillas, municipio Sucre, Mérida. Los clientes exploran sin cuenta y, con correo confirmado, hacen pedidos, pagan por separado al comercio y al repartidor y siguen la entrega dentro de la app. El retiro por WhatsApp sigue disponible. Los repartidores reciben el aviso en el teléfono y los comercios administran su catálogo. Tú apruebas y administras todo.
 
 Se instala en el teléfono como una app (PWA), sin pasar por tiendas de aplicaciones.
 
@@ -12,7 +12,7 @@ Se instala en el teléfono como una app (PWA), sin pasar por tiendas de aplicaci
 
 | Vista | Dirección | Quién | Qué hace |
 |---|---|---|---|
-| **Cliente** | `/` | Cualquier persona, sin cuenta | Busca comercios y ofertas, arma su pedido y lo envía por WhatsApp. Si toca **"Quiero que venga un delivery"**, avisa a los repartidores y puede seguir su pedido en `/pedido/…` |
+| **Cliente** | `/`, `/mis-pedidos`, `/mi-cuenta` | Explorar sin cuenta; pedir con cuenta confirmada | Direcciones con mapa, cotización por distancia, pagos separados, chat, código de entrega y calificación |
 | **Comercio** | `/panel` | Dueños de negocio aprobados | Edita su perfil, logo y portada, maneja productos con foto, publica ofertas flash, ve sus pedidos con delivery y su membresía |
 | **Repartidor** | `/repartidor` | Repartidores aprobados | Se pone disponible, recibe una notificación con sonido por cada pedido, lo acepta (el primero que acepta se lo queda), lo marca como recogido y entregado, y ve sus ganancias |
 | **Administración** | `/admin` | Tú | Aprueba o suspende comercios y repartidores, asigna planes, destaca comercios, ve todos los pedidos y ajusta el precio del delivery y de los planes |
@@ -56,6 +56,12 @@ Para registrarse, comercios y repartidores dan datos legales en 3 pasos y acepta
 - Los precios se cambian en **Administración → Ajustes**.
 
 ---
+
+## Integración de pedidos de octubre de 2026
+
+Ver [pedidos y cobertura](docs/pedidos-y-cobertura.md) para activar la migración, configurar BCV, validar el perímetro de Lagunillas y programar vencimientos. `/cobertura` muestra el mapa público. Las tarifas iniciales son $1 hasta 1,5 km, $0,40/km adicional, redondeo a $0,25, tope $4 y comisión 10 %. Solo se admiten destinos internos. Los pedidos anteriores por WhatsApp conservan sus pantallas.
+
+`npm run test:orders` ejecuta las pruebas locales de PostgreSQL embebido, sin tocar Supabase.
 
 ## Puesta en marcha (paso a paso)
 

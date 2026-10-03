@@ -1,5 +1,7 @@
 'use client';
 
+import OrdersBoard from '@/components/OrdersBoard';
+import OrderProfile from '@/components/OrderProfile';
 import { VerificationCard } from '@/components/Verification';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -98,15 +100,39 @@ export default function RepartidorPage() {
     };
   }, [loadDeliveries]);
 
+  useEffect(() => {
+    if (!sb || !driver?.is_online) return;
+    let active = true;
+    const update = async () => {
+      if (!active || document.visibilityState !== 'visible') return;
+      let hasOrder = false;
+      try { const d = await apiFetch(sb,'/api/orders'); hasOrder = d.orders.some((o:any) => !o.available && !['delivered','cancelled'].includes(o.state)); } catch {}
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(p => {
+        if (active) apiFetch(sb,'/api/driver-position',{point:{lat:p.coords.latitude,lng:p.coords.longitude}}).catch((e:any)=>notify(e.message,'err'));
+      }, () => { apiFetch(sb,'/api/driver-position',{online:false}).then(loadDriver); notify('Sin ubicación: te pusimos en descanso. Abre la app y permite GPS.','err'); }, {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+      return hasOrder;
+    };
+    let timer:ReturnType<typeof setTimeout>;
+    const loop = async () => {const hasOrder=await update();if(active)timer=setTimeout(loop,hasOrder?15000:120000);};
+    loop();
+    return () => {active=false;clearTimeout(timer);};
+  },[sb,driver?.is_online,loadDriver]);
+
   const setOnline = async (online: boolean) => {
     if (!sb) return;
     unlockAudio();
     setToggling(true);
-    const { data, error } = await sb.rpc('set_driver_online', { p_online: online });
+    try {
+      if (online) {
+        if (!navigator.geolocation) throw new Error('Necesitas ubicación para estar disponible.');
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
+        await apiFetch(sb,'/api/driver-position',{online:true,point:{lat:pos.coords.latitude,lng:pos.coords.longitude}});
+      } else await apiFetch(sb,'/api/driver-position',{online:false});
+      await loadDriver();
+    } catch (e:any) { setToggling(false); return notify(e.message || 'Permite ubicación y mantén la app abierta.','err'); }
     setToggling(false);
-    if (error) return notify(friendlyError(error), 'err');
     seen.current = null;
-    setDriver(data as Driver);
     notify(online ? '¡Estás disponible! Te avisaremos de cada pedido.' : 'Descansa. No recibirás pedidos.');
   };
 
@@ -195,7 +221,9 @@ export default function RepartidorPage() {
           <PushCard sb={sb} userId={session.user.id} text="Te avisaremos con sonido cada vez que alguien pida un delivery, aunque tengas la app cerrada." onError={(m) => notify(m, 'err')} />
         )}
 
-        {/* ---------- PEDIDOS ---------- */}
+        {approved && tab === 'pedidos' && <><p className="card p-3 text-sm">Usamos tu ubicación para avisarte pedidos cercanos y mostrar al cliente por dónde vienes. Mantén la app abierta. Sin permiso GPS no puedes estar disponible. En iPhone, permite ubicación para este sitio.</p><OrdersBoard sb={sb} role="delivery" /></>}
+        <details><summary>Pedidos anteriores por WhatsApp</summary>
+        {/* ---------- PEDIDOS ANTERIORES ---------- */}
         {tab === 'pedidos' &&
           (approved ? (
             <>
@@ -270,10 +298,12 @@ export default function RepartidorPage() {
             />
           ))}
 
+        </details>
         {/* ---------- HISTORIAL ---------- */}
         {tab === 'historial' && <HistoryTab past={past} />}
 
         {/* ---------- PERFIL ---------- */}
+        {tab === 'perfil' && <OrderProfile sb={sb} role="delivery" />}
         {tab === 'perfil' && <DriverProfile sb={sb} userId={session.user.id} driver={driver} onSaved={(d) => { setDriver(d); notify('Perfil actualizado'); }} onError={(m) => notify(m, 'err')} />}
         {tab === 'perfil' && (
           <VerificationCard sb={sb} userId={session.user.id} kind="delivery" vehicle={driver.vehicle} approved={driver.status === 'approved'} prefill={{ legal_name: driver.full_name }} notify={notify} />

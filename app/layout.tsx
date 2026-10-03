@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/plus-jakarta-sans';
 import '@fontsource-variable/fraunces/full.css';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     default: 'Lagunillas Central',
     template: '%s · Lagunillas Central',
   },
-  description: 'Comercios, ofertas flash y pedidos por WhatsApp en el municipio Lagunillas, Mérida.',
+  description: 'Comercios, ofertas flash y pedidos por WhatsApp en el Lagunillas, municipio Sucre, Mérida.',
   applicationName: 'Lagunillas Central',
   manifest: '/manifest.json',
   appleWebApp: {

@@ -7,7 +7,7 @@ import { getBrowserClient } from '@/lib/supabase-browser';
 import { homeForRole } from '@/lib/auth';
 import type { Role } from '@/lib/types';
 
-const ROLE_LABEL: Record<string, string> = { admin: 'Administración', merchant: 'Panel de mi comercio', delivery: 'Panel de repartidor' };
+const ROLE_LABEL: Record<string, string> = { admin: 'Administración', merchant: 'Panel de mi comercio', delivery: 'Panel de repartidor', client: 'Mis pedidos' };
 
 /** Botón de cuenta en la portada: abre un menú claro con todas las opciones */
 export default function AccountMenu() {
@@ -34,7 +34,7 @@ export default function AccountMenu() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  const loggedIn = role && role !== 'client';
+  const loggedIn = Boolean(role);
 
   return (
     <>
@@ -70,7 +70,7 @@ export default function AccountMenu() {
             <div className="mb-4 flex items-center gap-3 rounded-2xl bg-ocre-100 p-3 text-sm text-tinta-700">
               <ShoppingBag size={18} className="shrink-0 text-ocre-600" />
               <span>
-                <b>Para pedir no necesitas cuenta.</b> Las cuentas son para comercios y repartidores.
+                <b>Explora sin cuenta.</b> Para pagar y seguir pedidos en la app necesitas una cuenta de cliente.
               </span>
             </div>
 
@@ -82,6 +82,7 @@ export default function AccountMenu() {
             <div className="space-y-2.5 pb-5">
               {(
                 [
+                  ['/registro/cliente', ShoppingBag, 'Soy cliente', 'Direcciones, pagos y seguimiento de pedidos', 'bg-cielo-100 text-cielo-600'],
                   ['/registro?tipo=comercio', Store, 'Registrar mi comercio', 'Vende en la app y recibe pedidos', 'bg-teja-100 text-teja-600'],
                   ['/registro?tipo=repartidor', Bike, 'Quiero ser repartidor', 'Gana haciendo entregas en el pueblo', 'bg-laguna-100 text-laguna-600'],
                 ] as const

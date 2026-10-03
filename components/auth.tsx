@@ -103,7 +103,7 @@ export function NoAccountNeeded() {
         <ShoppingBag size={18} />
       </span>
       <span className="flex-1 text-tinta-600">
-        <b className="text-tinta-900">¿Solo quieres pedir?</b> No necesitas cuenta. Ve directo a los comercios.
+        <b className="text-tinta-900">Mira los comercios sin cuenta.</b> Para pedir dentro de la app, crea tu cuenta de cliente.
       </span>
       <ChevronRight size={18} className="text-tinta-400" />
     </Link>

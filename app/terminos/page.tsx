@@ -43,13 +43,13 @@ export default async function TerminosPage() {
       body: (
         <>
           <p>
-            Lagunillas Central (<b>“la app”</b> o <b>“nosotros”</b>) es una plataforma digital que conecta a personas del municipio Lagunillas, estado
+            Lagunillas Central (<b>“la app”</b> o <b>“nosotros”</b>) es una plataforma digital que conecta a personas del Lagunillas, municipio Sucre, estado
             Mérida, Venezuela, con comercios de la zona y con repartidores independientes.
           </p>
           <p>A través de la app puedes:</p>
           <ul>
             <li>
-              <b>Como cliente:</b> ver comercios, productos y ofertas, armar un pedido y enviarlo al comercio por WhatsApp, y pedir que un repartidor lo lleve.
+              <b>Como cliente:</b> explorar sin cuenta; con cuenta y correo confirmado, pedir dentro de la app, registrar pagos y seguir la entrega. El retiro por WhatsApp continúa disponible sin cuenta.
             </li>
             <li>
               <b>Como comercio:</b> mostrar tu negocio y tu catálogo, publicar ofertas y recibir pedidos.
@@ -184,10 +184,11 @@ export default async function TerminosPage() {
         <>
           <ul>
             <li>Los precios de los productos los fija cada comercio. Los montos se muestran como referencia en la moneda indicada en la app.</li>
-            <li>La tarifa de delivery la fija la administración y se muestra antes de confirmar el pedido.</li>
+            <li>El delivery opera solo dentro de la cobertura configurada para Lagunillas. La tarifa usa la distancia del comercio al destino, con parámetros fijados por la administración, y se muestra antes de enviar. Cuando no hay ruta por carretera disponible, se indica que la distancia es estimada. El trayecto del repartidor al comercio no se cobra al cliente.</li>
+            <li>La tasa BCV y su fecha se guardan en el pedido. El comercio debe aceptar antes de que el cliente pague. Una captura de pago nunca sustituye la verificación del banco.</li>
+            <li>Al completar una entrega se descuenta del saldo prepagado del repartidor la comisión configurada y guardada en el pedido. No se puede aceptar sin saldo suficiente. Las recargas necesitan confirmación de la administración.</li>
             <li>
-              Por ahora, <b>el cliente paga directamente</b> al comercio y al repartidor, por el medio que acuerden (efectivo, pago móvil, transferencia u otro).
-              Lagunillas Central no recibe ni guarda ese dinero y no responde por pagos hechos fuera de la app.
+              <b>El cliente paga directamente</b> los productos al comercio y el delivery al repartidor. Los pedidos dentro de la app usan pago móvil con comprobante, últimos cinco dígitos de referencia, banco y monto. Solo quien cobra confirma que vio el dinero en su banco. La app no recibe ese dinero. Efectivo, punto de venta y Zelle se acuerdan directamente para retiro o WhatsApp.
             </li>
             <li>Nunca te pediremos claves bancarias ni códigos de confirmación. Si alguien te los pide en nombre de la app, es un fraude.</li>
           </ul>
@@ -204,7 +205,8 @@ export default async function TerminosPage() {
       title: 'Cancelaciones y reclamos',
       body: (
         <ul>
-          <li>El comercio puede cancelar un pedido con delivery mientras no haya sido recogido.</li>
+          <li>Cancelar después de cobrar abre un reclamo; quien recibió el pago debe registrar la devolución y el cliente confirma que llegó. Los plazos de aceptación y pago pueden cancelar o liberar una asignación; los plazos de confirmación bancaria avisan a la administración y nunca confirman un pago automáticamente.</li>
+          <li>La entrega requiere el código de cuatro dígitos del cliente. El chat cliente-comercio abre después de aceptar y cierra al salir el pedido; el chat con el repartidor abre tras confirmar el pago y cierra dos horas después de entregar. En reclamo, la administración puede leer el chat para revisar el caso.</li>
           <li>Los reclamos sobre el producto (calidad, cantidad, precio, estado) se hacen al comercio.</li>
           <li>Los reclamos sobre la entrega (demora, trato, daños en el traslado) se hacen al repartidor.</li>
           <li>

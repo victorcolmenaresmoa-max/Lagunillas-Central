@@ -53,12 +53,13 @@ export default async function PrivacidadPage() {
       body: (
         <>
           <p>
-            <b>Si eres cliente</b> (no necesitas cuenta):
+            <b>Si eres cliente</b> (cuenta necesaria para pedidos dentro de la app):
           </p>
           <ul>
             <li>Cuando pides un repartidor: tu nombre, teléfono, dirección de entrega, nota y los productos del pedido.</li>
             <li>Cuando envías el pedido por WhatsApp, ese mensaje va directo al comercio a través de WhatsApp; nosotros no lo guardamos.</li>
-            <li>Para agilizar tu próximo pedido, tu nombre, teléfono y dirección se guardan <b>solo en tu propio teléfono</b>, no en nuestros servidores.</li>
+            <li>Guardamos tu nombre, teléfono, correo confirmado y direcciones con punto en el mapa en tu cuenta. No solicitamos cédula a clientes.</li>
+            <li>Guardamos los pedidos, comprobantes, referencias de pago, tasa BCV, reclamos, calificaciones y mensajes del chat para gestionar la entrega y atender incidencias.</li>
           </ul>
           <p>
             <b>Si eres comercio:</b>
@@ -79,8 +80,7 @@ export default async function PrivacidadPage() {
           </ul>
           <p>
             <b>Datos técnicos:</b> para enviarte notificaciones guardamos un identificador de tu teléfono; para mantener tu sesión usamos cookies necesarias; y
-            para frenar pedidos falsos revisamos por unos minutos la conexión desde la que llegan, sin guardarla. No usamos tu ubicación GPS ni cookies de
-            publicidad.
+            para frenar pedidos falsos revisamos por unos minutos la conexión desde la que llegan, sin guardarla. Usamos ubicación GPS solo cuando la autorizas para guardar una dirección o ubicar el comercio, y mientras el repartidor está disponible o lleva un pedido con la app abierta. No usamos cookies de publicidad.
           </p>
         </>
       ),
@@ -134,7 +134,7 @@ export default async function PrivacidadPage() {
                 </tr>
                 <tr>
                   <td>Dirección de entrega</td>
-                  <td>Los repartidores disponibles, para decidir si toman el pedido</td>
+                  <td>Los repartidores disponibles ven el sector y el punto de destino para evaluar la ruta; solo el asignado ve tus datos de contacto y dirección escrita.</td>
                 </tr>
                 <tr>
                   <td>Tu nombre y teléfono como cliente</td>
@@ -142,7 +142,7 @@ export default async function PrivacidadPage() {
                 </tr>
                 <tr>
                   <td>Nombre, foto, vehículo, placa y teléfono del repartidor</td>
-                  <td>Los comercios cuyos pedidos lleva, y el cliente de ese pedido (el teléfono, solo mientras la entrega está en curso)</td>
+                  <td>El cliente de ese pedido y el comercio correspondiente, como parte del historial de la entrega.</td>
                 </tr>
                 <tr>
                   <td>Cédula, RIF, fecha de nacimiento, dirección, contacto de emergencia y documentos</td>
@@ -154,6 +154,8 @@ export default async function PrivacidadPage() {
             </table>
           </div>
           <p>
+            Los comprobantes están en almacenamiento privado; solo los ve quien pagó, quien cobró y la administración. Los datos de pago móvil solo aparecen al cliente en el paso de pago. La administración solo puede leer los chats de pedidos en reclamo. Guardamos únicamente la última ubicación del repartidor, no su recorrido; se actualiza aproximadamente cada 15 segundos con pedido activo y cada 2 minutos disponible. El cliente ve esa ubicación durante la entrega, junto con su hora de actualización.
+          </p><p>
             <b>No vendemos ni alquilamos tus datos</b>, ni los usamos para publicidad de terceros.
           </p>
         </>
@@ -172,6 +174,7 @@ export default async function PrivacidadPage() {
             </li>
             <li>
               <b>Vercel</b>: aloja la app.
+            </li><li><b>OpenStreetMap y el servicio de rutas OSRM</b>: muestran el mapa y calculan recorridos. El mapa solicita mosaicos de la zona visible y el servicio de rutas recibe los puntos de origen y destino, sin nombres ni teléfonos. Las rutas pueden estimarse cuando el servicio no está disponible.
             </li>
             <li>
               <b>Google (Gmail)</b>: envía los correos con códigos para confirmar tu cuenta o recuperar tu contraseña.

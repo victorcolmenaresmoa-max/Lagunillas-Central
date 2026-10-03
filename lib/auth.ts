@@ -14,6 +14,8 @@ export function homeForRole(role: Role | undefined | null) {
       return '/panel';
     case 'delivery':
       return '/repartidor';
+    case 'client':
+      return '/mis-pedidos';
     default:
       return '/';
   }

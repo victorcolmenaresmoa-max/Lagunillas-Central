@@ -18,7 +18,7 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   const path = req.nextUrl.pathname;
-  const isPrivate = ['/panel', '/repartidor', '/admin'].some((p) => path === p || path.startsWith(p + '/'));
+  const isPrivate = ['/panel', '/repartidor', '/admin', '/mi-cuenta', '/mis-pedidos'].some((p) => path === p || path.startsWith(p + '/'));
   if (!session && isPrivate) {
     const to = new URL('/entrar', req.url);
     to.searchParams.set('next', path);
@@ -28,5 +28,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/panel/:path*', '/repartidor/:path*', '/admin/:path*', '/entrar', '/registro'],
+  matcher: ['/panel/:path*', '/repartidor/:path*', '/admin/:path*', '/mi-cuenta', '/mis-pedidos', '/entrar', '/registro'],
 };

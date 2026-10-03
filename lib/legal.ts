@@ -5,7 +5,7 @@
  */
 
 /** Cambia esta fecha cada vez que modifiques /terminos o /privacidad: a todos se les pedirá aceptar de nuevo */
-export const TERMS_VERSION = '2026-09-30';
+export const TERMS_VERSION = '2026-10-03';
 
 /** Datos de contacto que aparecen en los términos y la privacidad (opcional en Vercel) */
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || '';

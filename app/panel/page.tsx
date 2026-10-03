@@ -1,5 +1,7 @@
 'use client';
 
+import OrdersBoard from '@/components/OrdersBoard';
+import OrderProfile from '@/components/OrderProfile';
 import { VerificationCard } from '@/components/Verification';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -157,13 +159,16 @@ function PanelInner() {
         )}
 
         {tab === 'pedidos' && (
+          <>
+          <OrdersBoard sb={sb} role="merchant" />
+          <details><summary>Pedidos anteriores por WhatsApp</summary>
           <OrdersTab
             sb={sb}
             userId={session.user.id}
             orders={orders}
             onChanged={loadOrders}
             notify={notify}
-          />
+          /></details></>
         )}
 
         {tab === 'productos' && (
@@ -232,6 +237,7 @@ function PanelInner() {
           />
         )}
 
+        {tab === 'perfil' && <OrderProfile sb={sb} role="merchant" />}
         {tab === 'perfil' && <VerificationCard sb={sb} userId={session.user.id} kind="merchant" approved={merchant.status === 'approved'} notify={notify} />}
 
         {tab === 'plan' && <PlanTab merchant={merchant} settings={settings} productsCount={products.length} />}

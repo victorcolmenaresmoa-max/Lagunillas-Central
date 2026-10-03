@@ -33,7 +33,7 @@ function Login() {
     const sb = getBrowserClient()!;
     const { data } = await sb.from('profiles').select('role').eq('user_id', userId).maybeSingle();
     const home = homeForRole(data?.role as Role);
-    router.replace(next && next.startsWith('/') && home !== '/' && next.startsWith(home) ? next : home);
+    router.replace(next && next.startsWith('/') && !next.startsWith('//') && (next.startsWith(home) || data?.role === 'client' && /^\/(comercio\/|mi-cuenta|mis-pedidos)/.test(next)) ? next : home);
     router.refresh();
   };
 

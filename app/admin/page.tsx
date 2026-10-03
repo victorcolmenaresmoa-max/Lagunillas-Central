@@ -1,4 +1,6 @@
 'use client';
+import OrdersBoard from '@/components/OrdersBoard';
+import OrderProfile from '@/components/OrderProfile';
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -136,7 +138,8 @@ function AdminInner() {
         )}
         {tab === 'comercios' && <MerchantsTab merchants={merchants} update={updateMerchant} legal={legal} openLegal={setLegalFor} />}
         {tab === 'repartidores' && <DriversTab drivers={drivers} orders={orders} update={updateDriver} legal={legal} openLegal={setLegalFor} />}
-        {tab === 'pedidos' && <OrdersTab sb={sb} orders={orders} reload={load} notify={notify} />}
+        {tab === 'pedidos' && <><OrdersBoard sb={sb} role="admin" /><details><summary>Pedidos anteriores</summary><OrdersTab sb={sb} orders={orders} reload={load} notify={notify} /></details></>}
+        {tab === 'ajustes' && <OrderProfile sb={sb} role="admin" />}
         {tab === 'ajustes' && settings && (
           <SettingsTab
             settings={settings}

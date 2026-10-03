@@ -2,9 +2,9 @@
 //  · Permite instalar la app en el teléfono
 //  · Muestra la app aunque la señal esté débil (páginas públicas)
 //  · Recibe las notificaciones push (pedidos para repartidores, avisos a comercios)
-const CACHE = 'lagunillas-v4';
+const CACHE = 'lagunillas-v5';
 const SHELL = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
-const PRIVATE = ['/api', '/panel', '/repartidor', '/admin', '/entrar', '/registro', '/pedido', '/auth'];
+const PRIVATE = ['/api', '/panel', '/repartidor', '/admin', '/entrar', '/registro', '/pedido', '/auth', '/mi-cuenta', '/mis-pedidos'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

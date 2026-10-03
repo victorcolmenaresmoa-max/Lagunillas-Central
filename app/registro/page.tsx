@@ -267,6 +267,7 @@ function Registro() {
   if (!tipo) {
     return (
       <AuthShell tab="registro" title="Crea tu cuenta" subtitle="¿Cómo quieres ser parte de Lagunillas Central?" footer={<NoAccountNeeded />}>
+        <Link href="/registro/cliente" className="btn-primary mb-4 w-full">Crear cuenta de cliente</Link>
         <div className="space-y-3">
           {(Object.keys(TIPOS) as Tipo[]).map((key) => {
             const t = TIPOS[key];
